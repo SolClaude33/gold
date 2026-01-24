@@ -7,7 +7,7 @@ export function Ticker() {
     "FED PRINTING INFINITE CASH",
     "BUY THE DIP",
     "HODL FOR GOLD",
-    "FLAPXAU TO THE MOON",
+    "GOLDENBAO TO THE MOON",
     "NO STAKING JUST EARN",
     "SUPPLY BURN IMMINENT"
   ];

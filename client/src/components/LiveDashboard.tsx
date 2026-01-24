@@ -144,7 +144,7 @@ export function LiveDashboard() {
                <div className="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-700 dark:border-yellow-500 dark:bg-yellow-500/20"></div>
                <div className="w-3 h-3 rounded-full bg-green-500 border border-green-700 dark:border-green-500 dark:bg-green-500/20"></div>
              </div>
-             <span className="text-black dark:text-green-500 font-bold">FLAPXAU_MONITOR_V2.1</span>
+             <span className="text-black dark:text-green-500 font-bold">GOLDENBAO_MONITOR_V2.1</span>
           </div>
           <div className="flex gap-4 text-[10px] md:text-xs text-green-800 dark:text-green-600 uppercase tracking-wider font-bold">
              {isLive && countdown && (
@@ -189,7 +189,7 @@ export function LiveDashboard() {
             <div className="space-y-2">
               <h3 className="text-black dark:text-blue-400 text-xs uppercase tracking-widest mb-1 font-bold">Liquidity ({stats?.buybackPercentage || "50"}%)</h3>
               <div className="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tighter tabular-nums" data-testid="text-buyback">
-                {(stats?.totalTokenBuyback || 0).toFixed(2)} FLAPXAU
+                {(stats?.totalTokenBuyback || 0).toFixed(2)} GoldenBao
               </div>
               <div className="text-xs text-blue-700 dark:text-blue-400 font-bold bg-blue-100 dark:bg-transparent inline-block px-2 py-0.5 border border-blue-200 dark:border-none uppercase">
                 {stats?.majorHoldersPercentage || "50"}% Dividends | {stats?.buybackPercentage || "50"}% Liquidity
@@ -244,7 +244,7 @@ export function LiveDashboard() {
                      </div>
                      <div className="flex items-center gap-4">
                        <span className="font-bold tabular-nums text-black dark:text-green-100">
-                         {tx.type === "BUY GOLD" || tx.type === "DIVIDEND" ? `${tx.amount} OZ` : `${tx.amount} FLAPXAU`}
+                         {tx.type === "BUY GOLD" || tx.type === "DIVIDEND" ? `${tx.amount} OZ` : `${tx.amount} GoldenBao`}
                        </span>
                        <span className="text-xs text-gray-400 dark:opacity-30 hidden md:block font-mono">{tx.hash}</span>
                        <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-black/50 rounded border border-gray-200 dark:border-white/10 text-gray-500 dark:text-green-500/50 font-bold">LIVE</span>

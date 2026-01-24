@@ -23,7 +23,7 @@ export function Manifesto() {
                 <span className="float-left text-7xl font-black mr-4 mt-[-10px]">T</span>he year is 2025. Gold is at $4,530. The dollar is dissolving into digital dust. The suits at Wall Street are panicking. They told you inflation was "transitory". They lied.
               </p>
               <p>
-                <span className="bg-foreground text-background px-2 font-bold transform -rotate-1 inline-block">FLAPXAU</span> isn't just a memecoin. It's an index fund for the end of the world. It's a bet on the shiny rock that has outlasted every empire in history.
+                <span className="bg-foreground text-background px-2 font-bold transform -rotate-1 inline-block">GoldenBao</span> isn't just a memecoin. It's an index fund for the end of the world. It's a bet on the shiny rock that has outlasted every empire in history.
               </p>
               <p>
                 While other coins offer you dreams of dogs in hats, we offer you the heavy, cold, hard reality of <strong className="underline decoration-4 decoration-metal-gold">REAL GOLD</strong>. With 100x leverage on culture.

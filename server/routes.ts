@@ -2,6 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import crypto from "crypto";
+import { getContractData } from "./contract";
 // Blockchain features disabled - Solana integration removed
 // import { solanaService } from "./solana";
 
@@ -609,6 +610,9 @@ export async function registerRoutes(
       const distributions = await storage.getDistributions(100);
       const config = await storage.getProtocolConfig();
       
+      // Get contract data from EVM contract
+      const contractData = await getContractData();
+      
       const totalGoldMajorHolders = distributions.reduce((sum, d) => 
         sum + parseFloat(d.goldPurchased || "0"), 0
       );
@@ -621,6 +625,10 @@ export async function registerRoutes(
       
       const totalTokenBuyback = distributions.reduce((sum, d) => 
         sum + parseFloat(d.tokenBuyback || "0"), 0
+      );
+      
+      const totalTreasury = distributions.reduce((sum, d) => 
+        sum + parseFloat(d.feesForBurn || "0"), 0
       );
       
       const totalFeesClaimed = distributions.reduce((sum, d) => 
@@ -636,19 +644,23 @@ export async function registerRoutes(
         totalGoldDistributed,
         totalGoldMajorHolders,
         totalGoldMediumHolders,
-        totalTokenBuyback,
+        totalTokenBuyback: contractData.liquidityBalance || totalTokenBuyback.toString(),
+        totalTreasury: contractData.fundsBalance || totalTreasury.toString(),
         totalFeesClaimed,
         totalBurned,
         goldMint: config?.goldMint || "GoLDppdjB1vDTPSGxyMJFqdnj134yH6Prg9eqsGDiw6A",
-        tokenMint: config?.tokenMint || null,
+        tokenMint: contractData.tokenAddress || config?.tokenMint || "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777",
         lastDistribution: distributions[0]?.timestamp || null,
         minimumHolderPercentage: config?.minimumHolderPercentage || "0.5",
         mediumHolderMinPercentage: config?.mediumHolderMinPercentage || "0.1",
-        majorHoldersPercentage: config?.majorHoldersPercentage || "70",
-        mediumHoldersPercentage: config?.mediumHoldersPercentage || "20",
-        buybackPercentage: config?.buybackPercentage || "10",
-        goldDistributionPercentage: config?.goldDistributionPercentage || "70",
-        burnPercentage: config?.burnPercentage || "30",
+        majorHoldersPercentage: config?.majorHoldersPercentage || "75",
+        mediumHoldersPercentage: config?.mediumHoldersPercentage || "0",
+        buybackPercentage: config?.buybackPercentage || "15",
+        treasuryPercentage: "10",
+        goldDistributionPercentage: config?.goldDistributionPercentage || "75",
+        burnPercentage: config?.burnPercentage || "0",
+        fundsBalance: contractData.fundsBalance,
+        liquidityBalance: contractData.liquidityBalance,
       });
     } catch (error) {
       console.error("Error fetching stats:", error);

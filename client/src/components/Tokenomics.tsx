@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Coins, TrendingUp, Twitter } from "lucide-react";
+import { Coins, TrendingUp, Twitter, Wallet } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 interface Stats {
@@ -27,7 +27,7 @@ export function Tokenomics() {
           Protocol Mechanics
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {/* Gold Dividends Card */}
           <motion.div 
             whileHover={{ y: -10 }}
@@ -38,13 +38,13 @@ export function Tokenomics() {
                 <Coins className="w-10 h-10 text-metal-gold" />
               </div>
               <h3 className="text-2xl font-black text-black mb-2 uppercase">Gold Dividends</h3>
-              <div className="text-5xl font-black text-white mb-3 drop-shadow-[4px_4px_0px_rgba(0,0,0,1)]">50%</div>
+              <div className="text-5xl font-black text-white mb-3 drop-shadow-[4px_4px_0px_rgba(0,0,0,1)]">75%</div>
               <p className="text-black font-serif font-bold text-base leading-relaxed border-y-2 border-black py-3 mb-3">
                 Creator fees converted to tokenized gold and distributed to holders.
               </p>
               <div className="mt-auto pt-3 w-full">
                  <div className="w-full bg-white h-3 mt-2 border-2 border-black overflow-hidden relative">
-                   <div className="h-full bg-black w-[50%]" />
+                   <div className="h-full bg-black w-[75%]" />
                  </div>
                  <p className="text-[10px] text-right mt-2 text-black font-mono font-bold uppercase">Holders with 0.5%+ supply</p>
               </div>
@@ -61,15 +61,38 @@ export function Tokenomics() {
                 <TrendingUp className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-black text-foreground mb-2 uppercase">Liquidity</h3>
-              <div className="text-5xl font-black text-green-600 mb-3 drop-shadow-[2px_2px_0px_var(--color-border)]">50%</div>
+              <div className="text-5xl font-black text-green-600 mb-3 drop-shadow-[2px_2px_0px_var(--color-border)]">15%</div>
               <p className="text-foreground font-serif font-bold text-base leading-relaxed border-y-2 border-border py-3 mb-3">
                 Creator fees used to provide liquidity and support the token price.
               </p>
               <div className="mt-auto pt-3 w-full">
                  <div className="w-full bg-muted h-3 mt-2 border-2 border-border overflow-hidden relative">
-                   <div className="h-full bg-green-600 w-[50%]" />
+                   <div className="h-full bg-green-600 w-[15%]" />
                  </div>
                  <p className="text-[10px] text-right mt-2 text-green-600 font-mono font-bold uppercase">Liquidity mechanism</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Treasury Card */}
+          <motion.div 
+            whileHover={{ y: -10 }}
+            className="bg-zinc-800 border-4 border-border p-6 relative group shadow-[12px_12px_0px_0px_var(--color-border)] hover:shadow-[16px_16px_0px_0px_var(--color-border)] transition-all"
+          >
+            <div className="relative z-10 flex flex-col items-center text-center h-full">
+              <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mb-4 border-4 border-zinc-600">
+                <Wallet className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-2xl font-black text-white mb-2 uppercase">Treasury</h3>
+              <div className="text-5xl font-black text-white mb-3 drop-shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">10%</div>
+              <p className="text-zinc-300 font-serif font-bold text-base leading-relaxed border-y-2 border-zinc-600 py-3 mb-3">
+                Creator fees allocated to treasury for future development and operations.
+              </p>
+              <div className="mt-auto pt-3 w-full">
+                 <div className="w-full bg-zinc-700 h-3 mt-2 border-2 border-zinc-600 overflow-hidden relative">
+                   <div className="h-full bg-purple-600 w-[10%]" />
+                 </div>
+                 <p className="text-[10px] text-right mt-2 text-zinc-400 font-mono font-bold uppercase">Treasury reserve</p>
               </div>
             </div>
           </motion.div>

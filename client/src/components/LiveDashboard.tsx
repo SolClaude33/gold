@@ -9,6 +9,7 @@ interface Stats {
   totalGoldDistributed: number;
   totalGoldMajorHolders: number;
   totalTokenBuyback: number;
+  totalTreasury: number;
   totalFeesClaimed: number;
   totalBurned: number;
   goldMint: string;
@@ -17,8 +18,11 @@ interface Stats {
   minimumHolderPercentage: string;
   majorHoldersPercentage: string;
   buybackPercentage: string;
+  treasuryPercentage: string;
   goldDistributionPercentage: string;
   burnPercentage: string;
+  fundsBalance?: string;
+  liquidityBalance?: string;
 }
 
 interface Distribution {
@@ -168,7 +172,7 @@ export function LiveDashboard() {
                 {stats?.totalDistributions || 0}
               </div>
               <div className="text-xs text-black dark:text-green-600 font-bold bg-green-200 dark:bg-transparent dark:text-green-500 inline-block px-2 py-0.5 border border-black dark:border-none uppercase">
-                {stats?.tokenMint ? "ACTIVE" : "PENDING"} | {stats?.goldDistributionPercentage || "50"}% → $GOLD
+                {stats?.tokenMint ? "ACTIVE" : "PENDING"} | {stats?.goldDistributionPercentage || "75"}% → $GOLD
               </div>
             </div>
 
@@ -180,19 +184,31 @@ export function LiveDashboard() {
                 {(stats?.totalGoldDistributed || 0).toFixed(4)} <span className="text-lg text-black/50 dark:text-metal-gold/50 font-normal">OZ</span>
               </div>
               <div className="w-full bg-white dark:bg-green-900/20 h-3 mt-2 border-2 border-black dark:border-none overflow-hidden rounded-full dark:rounded-none">
-                <div className="h-full bg-metal-gold" style={{ width: `${stats?.goldDistributionPercentage || 50}%` }}></div>
+                <div className="h-full bg-metal-gold" style={{ width: `${stats?.goldDistributionPercentage || 75}%` }}></div>
               </div>
             </div>
 
             <div className="w-full h-px bg-black dark:bg-green-900 opacity-10 dark:opacity-30" />
 
             <div className="space-y-2">
-              <h3 className="text-black dark:text-blue-400 text-xs uppercase tracking-widest mb-1 font-bold">Liquidity ({stats?.buybackPercentage || "50"}%)</h3>
+              <h3 className="text-black dark:text-blue-400 text-xs uppercase tracking-widest mb-1 font-bold">Liquidity ({stats?.buybackPercentage || "15"}%)</h3>
               <div className="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tighter tabular-nums" data-testid="text-buyback">
-                {(stats?.totalTokenBuyback || 0).toFixed(2)} GoldenBao
+                {stats?.liquidityBalance ? parseFloat(stats.liquidityBalance).toFixed(2) : (stats?.totalTokenBuyback || 0).toFixed(2)} <span className="text-lg text-blue-600/50 dark:text-blue-400/50 font-normal">GoldenBao</span>
               </div>
               <div className="text-xs text-blue-700 dark:text-blue-400 font-bold bg-blue-100 dark:bg-transparent inline-block px-2 py-0.5 border border-blue-200 dark:border-none uppercase">
-                {stats?.majorHoldersPercentage || "50"}% Dividends | {stats?.buybackPercentage || "50"}% Liquidity
+                {stats?.majorHoldersPercentage || "75"}% Dividends | {stats?.buybackPercentage || "15"}% Liquidity | {stats?.treasuryPercentage || "10"}% Treasury
+              </div>
+            </div>
+
+            <div className="w-full h-px bg-black dark:bg-green-900 opacity-10 dark:opacity-30" />
+
+            <div className="space-y-2">
+              <h3 className="text-black dark:text-purple-400 text-xs uppercase tracking-widest mb-1 font-bold">Treasury ({stats?.treasuryPercentage || "10"}%)</h3>
+              <div className="text-3xl font-black text-purple-600 dark:text-purple-400 tracking-tighter tabular-nums" data-testid="text-treasury">
+                {stats?.fundsBalance ? parseFloat(stats.fundsBalance).toFixed(2) : (stats?.totalTreasury || 0).toFixed(2)} <span className="text-lg text-purple-600/50 dark:text-purple-400/50 font-normal">GoldenBao</span>
+              </div>
+              <div className="text-xs text-purple-700 dark:text-purple-400 font-bold bg-purple-100 dark:bg-transparent inline-block px-2 py-0.5 border border-purple-200 dark:border-none uppercase">
+                Treasury Reserve
               </div>
             </div>
 

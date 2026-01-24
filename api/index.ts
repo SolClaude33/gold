@@ -213,7 +213,16 @@ async function getContractData() {
 
     // Use total accumulated values (not current balances)
     const liquidityBNBValue = totalLiquidityBNB;
-    const treasuryBNBValue = treasuryBNB !== null && treasuryBNB > 0n ? treasuryBNB : totalTreasuryBNB;
+    // Use marketQuoteBalance (current balance) for splitting
+    const marketBalanceValue = treasuryBNB !== null && treasuryBNB > 0n ? treasuryBNB : totalTreasuryBNB;
+    
+    // Split marketQuoteBalance: 11.76% → Treasury, 88.24% → Fees Converted to Gold
+    const treasuryPercentage = 11.76; // 11.76%
+    const feesPercentage = 88.24; // 88.24%
+    
+    // Calculate split values
+    const treasuryBNBValue = (marketBalanceValue * BigInt(Math.floor(treasuryPercentage * 100))) / 10000n;
+    const feesConvertedToGoldValue = (marketBalanceValue * BigInt(Math.floor(feesPercentage * 100))) / 10000n;
     
     // Try to read tokens (optional - if function doesn't exist, just skip it)
     let liquidityTokensValue = 0n;
@@ -232,10 +241,13 @@ async function getContractData() {
     console.log("[Contract] Raw values:");
     console.log("  - Liquidity BNB:", liquidityBNBValue.toString());
     console.log("  - Liquidity Tokens:", liquidityTokensValue.toString());
-    console.log("  - Treasury/Funds BNB:", treasuryBNBValue.toString());
+    console.log("  - Market Balance (total):", marketBalanceValue.toString());
+    console.log("  - Treasury (11.76%):", treasuryBNBValue.toString());
+    console.log("  - Fees Converted to Gold (88.24%):", feesConvertedToGoldValue.toString());
 
     const liquidityBNBFormatted = formatEther(liquidityBNBValue);
     const treasuryBNBFormatted = formatEther(treasuryBNBValue);
+    const feesConvertedToGoldFormatted = formatEther(feesConvertedToGoldValue);
     // Tokens are already in token units (not wei), so format accordingly
     // Assuming 18 decimals for tokens (adjust if different)
     const liquidityTokensFormatted = liquidityTokensValue > 0n ? formatEther(liquidityTokensValue) : "0";
@@ -244,13 +256,16 @@ async function getContractData() {
       liquidityBNB: liquidityBNBFormatted,
       liquidityTokens: liquidityTokensFormatted,
       treasuryBNB: treasuryBNBFormatted,
+      feesConvertedToGold: feesConvertedToGoldFormatted,
       liquidityBNBRaw: liquidityBNBValue.toString(),
       liquidityTokensRaw: liquidityTokensValue.toString(),
       treasuryBNBRaw: treasuryBNBValue.toString(),
+      feesConvertedToGoldRaw: feesConvertedToGoldValue.toString(),
     });
 
     const result: any = {
-      fundsBalance: treasuryBNBFormatted, // Treasury = funds recipient
+      fundsBalance: treasuryBNBFormatted, // Treasury = 11.76% of marketQuoteBalance
+      feesConvertedToGold: feesConvertedToGoldFormatted, // Fees Converted to Gold = 88.24% of marketQuoteBalance
       liquidityBalance: liquidityBNBFormatted, // Liquidity BNB
       tokenAddress: TOKEN_ADDRESS,
       taxProcessorAddress: taxProcessorAddress,
@@ -543,12 +558,14 @@ async function registerRoutes(httpServer: Server, app: Express): Promise<Server>
       let liquidityBNB = 0;
       let liquidityTokens = 0;
       let fundsBNB = 0;
+      let feesConvertedToGold = 0;
       
       try {
         liquidityBNB = contractData?.liquidityBalance ? parseFloat(String(contractData.liquidityBalance)) || 0 : 0;
         liquidityTokens = contractData?.liquidityTokens ? parseFloat(String(contractData.liquidityTokens)) || 0 : 0;
         fundsBNB = contractData?.fundsBalance ? parseFloat(String(contractData.fundsBalance)) || 0 : 0;
-        console.log("[Stats] Parsed values - liquidityBNB:", liquidityBNB, "liquidityTokens:", liquidityTokens, "fundsBNB:", fundsBNB);
+        feesConvertedToGold = contractData?.feesConvertedToGold ? parseFloat(String(contractData.feesConvertedToGold)) || 0 : 0;
+        console.log("[Stats] Parsed values - liquidityBNB:", liquidityBNB, "liquidityTokens:", liquidityTokens, "fundsBNB:", fundsBNB, "feesConvertedToGold:", feesConvertedToGold);
       } catch (parseError) {
         console.error("[Stats] Error parsing contract values:", parseError);
       }
@@ -559,7 +576,7 @@ async function registerRoutes(httpServer: Server, app: Express): Promise<Server>
         totalGoldMajorHolders: 0,
         totalGoldMediumHolders: 0,
         totalTokenBuyback: liquidityBNB.toString(),
-        totalTreasury: fundsBNB.toString(), // Treasury = funds from contract
+        totalTreasury: fundsBNB.toString(), // Treasury = 11.76% of marketQuoteBalance
         totalFeesClaimed: 0,
         totalBurned: 0,
         goldMint: "GoLDppdjB1vDTPSGxyMJFqdnj134yH6Prg9eqsGDiw6A",
@@ -573,7 +590,8 @@ async function registerRoutes(httpServer: Server, app: Express): Promise<Server>
         treasuryPercentage: "10",
         goldDistributionPercentage: "75",
         burnPercentage: "0",
-        fundsBalance: fundsBNB.toString(), // Treasury/Funds balance
+        fundsBalance: fundsBNB.toString(), // Treasury/Funds balance (11.76%)
+        feesConvertedToGold: feesConvertedToGold.toString(), // Fees Converted to Gold (88.24%)
         liquidityBalance: liquidityBNB.toString(), // Liquidity BNB balance
         liquidityTokens: liquidityTokens.toString(), // Liquidity Tokens balance
       };
@@ -603,6 +621,7 @@ async function registerRoutes(httpServer: Server, app: Express): Promise<Server>
         goldDistributionPercentage: "75",
         burnPercentage: "0",
         fundsBalance: "0",
+        feesConvertedToGold: "0",
         liquidityBalance: "0",
         liquidityTokens: "0",
       });

@@ -22,6 +22,7 @@ interface Stats {
   goldDistributionPercentage: string;
   burnPercentage: string;
   fundsBalance?: string;
+  feesConvertedToGold?: string;
   liquidityBalance?: string;
   liquidityTokens?: string;
 }
@@ -194,7 +195,19 @@ export function LiveDashboard() {
             <div className="space-y-2">
               <h3 className="text-black dark:text-metal-gold text-xs uppercase tracking-widest mb-1 font-bold">Fees Converted to Gold</h3>
               <div className="text-4xl font-black text-black dark:text-metal-gold tracking-tighter tabular-nums" data-testid="text-fees-gold">
-                - <span className="text-lg text-black/50 dark:text-metal-gold/50 font-normal"></span>
+                {statsLoading ? (
+                  <span className="text-sm">Loading...</span>
+                ) : statsError ? (
+                  <span className="text-sm text-red-500">Error</span>
+                ) : stats?.feesConvertedToGold ? (
+                  <>
+                    {parseFloat(stats.feesConvertedToGold).toFixed(4)} <span className="text-lg text-black/50 dark:text-metal-gold/50 font-normal">BNB</span>
+                  </>
+                ) : (
+                  <>
+                    0.0000 <span className="text-lg text-black/50 dark:text-metal-gold/50 font-normal">BNB</span>
+                  </>
+                )}
               </div>
               <div className="w-full bg-white dark:bg-green-900/20 h-3 mt-2 border-2 border-black dark:border-none overflow-hidden rounded-full dark:rounded-none">
                 <div className="h-full bg-metal-gold" style={{ width: `${stats?.goldDistributionPercentage || 75}%` }}></div>
@@ -222,13 +235,10 @@ export function LiveDashboard() {
                   )}
                 </div>
                 {stats?.liquidityTokens && parseFloat(stats.liquidityTokens) > 0 && (
-                  <div className="text-xl font-black text-blue-500 dark:text-blue-300 tracking-tighter tabular-nums">
-                    {parseFloat(stats.liquidityTokens).toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm text-blue-600/50 dark:text-blue-400/50 font-normal">tokens</span>
+                  <div className="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tighter tabular-nums">
+                    {parseFloat(stats.liquidityTokens).toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-lg text-blue-600/50 dark:text-blue-400/50 font-normal">tokens</span>
                   </div>
                 )}
-              </div>
-              <div className="text-xs text-blue-700 dark:text-blue-400 font-bold bg-blue-100 dark:bg-transparent inline-block px-2 py-0.5 border border-blue-200 dark:border-none uppercase">
-                {stats?.majorHoldersPercentage || "75"}% Dividends | {stats?.buybackPercentage || "15"}% Liquidity | {stats?.treasuryPercentage || "10"}% Treasury
               </div>
             </div>
 
@@ -260,7 +270,7 @@ export function LiveDashboard() {
                <div className="flex justify-between text-xs text-black dark:text-green-800 font-bold uppercase">
                   <span>TOKEN_CA</span>
                   <span className="font-mono">
-                    {stats?.tokenMint ? `...${stats.tokenMint.slice(-4)}` : "SOON"}
+                    {stats?.tokenMint ? stats.tokenMint : "SOON"}
                   </span>
                </div>
             </div>

@@ -47,7 +47,7 @@ export function Narrative() {
                 Governments are printing trillions. Your purchasing power is being stolen every second you hold cash. They call it "Quantitative Easing". We call it theft.
               </p>
               <p>
-                <strong className="bg-foreground text-background px-1">GoldFunX6900</strong> is the answer. We don't just meme about wealth. We capture it. By automatically converting fees into REAL tokenized Gold on the blockchain, we build a floor that cannot be rugged.
+                <strong className="bg-foreground text-background px-1">FLAPXAU</strong> is the answer. We don't just meme about wealth. We capture it. By automatically converting fees into REAL tokenized Gold, we build a floor that cannot be rugged.
               </p>
             </motion.div>
 

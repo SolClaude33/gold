@@ -71,13 +71,12 @@ export function Hero() {
       <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-50">
         <div className="relative z-50 transform -rotate-2 border-2 border-foreground bg-background px-4 py-1 shadow-[4px_4px_0px_0px_var(--color-foreground)]">
            <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter">
-              <span className="text-foreground">GOLDFUNX</span>
-              <span className="text-metal-gold">6900</span>
+              <span className="text-foreground">FLAPXAU</span>
            </h2>
         </div>
         <div className="flex items-center gap-3">
           <a 
-            href="https://x.com/Goldfunx6900" 
+            href="https://x.com/flapxau" 
             target="_blank" 
             rel="noopener noreferrer"
             className="p-2 border-2 border-border bg-card hover:bg-muted transition-colors rounded-full cursor-pointer"
@@ -157,7 +156,7 @@ export function Hero() {
           className="inline-block"
         >
           <h1 className="text-7xl md:text-9xl font-black tracking-tighter mb-4 text-black dark:text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.2)]">
-            GOLDFUN<span className="text-metal-gold">X</span>
+            FLAPXAU
           </h1>
           
           <div className="bg-metal-gold text-black font-mono font-bold text-xl md:text-2xl px-6 py-2 inline-block transform -rotate-2 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-8">
@@ -178,7 +177,7 @@ export function Hero() {
 
           <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
             <button className="w-full md:w-auto px-8 py-4 bg-black text-white font-black text-lg uppercase tracking-widest hover:bg-zinc-800 transition-transform hover:-translate-y-1 shadow-[0_4px_0_rgba(0,0,0,0.5)] border-2 border-black cursor-pointer" data-testid="button-buy">
-              Buy GoldFunX
+              Buy FLAPXAU
             </button>
             <a href="#dashboard">
               <button className="w-full md:w-auto px-8 py-4 bg-transparent border-2 border-black dark:border-white text-black dark:text-white font-black text-lg uppercase tracking-widest hover:bg-black/10 dark:hover:bg-white/10 transition-transform hover:-translate-y-1 cursor-pointer" data-testid="button-dashboard">

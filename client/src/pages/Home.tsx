@@ -38,19 +38,19 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-black py-12 border-t border-gray-800">
         <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold mb-6 text-white">GOLDFUNX6900</h2>
+            <h2 className="text-3xl font-bold mb-6 text-white">FLAPXAU</h2>
             <div className="flex justify-center gap-8 mb-8">
-                <a href="https://x.com/Goldfunx6900" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-metal-gold transition-colors">Twitter</a>
+                <a href="https://x.com/flapxau" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-metal-gold transition-colors">Twitter</a>
                 <a href="#" className="text-gray-400 hover:text-metal-gold transition-colors">DexScreener</a>
                 <a href="#" className="text-gray-400 hover:text-metal-gold transition-colors">Pump.fun</a>
             </div>
             <p className="text-gray-600 text-sm max-w-2xl mx-auto">
-                DISCLAIMER: This is a memecoin. The "Gold" and "Silver" mentioned are tokenized assets on Jupiter. 
+                DISCLAIMER: This is a memecoin. The "Gold" mentioned are tokenized assets. 
                 We are not financial advisors. We are just a bull made of metal on the internet. 
                 Price may go up, price may go down. Don't risk money you can't afford to lose to a robot bull.
             </p>
             <p className="text-gray-700 text-xs mt-8">
-                © 2025 GOLDFUNX6900 CORP. ALL RIGHTS RESERVED.
+                © 2025 FLAPXAU CORP. ALL RIGHTS RESERVED.
             </p>
         </div>
       </footer>

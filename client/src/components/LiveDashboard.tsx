@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { Activity, Wifi, Shield, ExternalLink, Clock, Loader2, CheckCircle2 } from "lucide-react";
+import { Activity, Wifi, Shield, Clock, Loader2, CheckCircle2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 
@@ -8,7 +8,6 @@ interface Stats {
   totalDistributions: number;
   totalGoldDistributed: number;
   totalGoldMajorHolders: number;
-  totalGoldMediumHolders: number;
   totalTokenBuyback: number;
   totalFeesClaimed: number;
   totalBurned: number;
@@ -16,9 +15,7 @@ interface Stats {
   tokenMint: string | null;
   lastDistribution: string | null;
   minimumHolderPercentage: string;
-  mediumHolderMinPercentage: string;
   majorHoldersPercentage: string;
-  mediumHoldersPercentage: string;
   buybackPercentage: string;
   goldDistributionPercentage: string;
   burnPercentage: string;
@@ -134,8 +131,6 @@ export function LiveDashboard() {
     return () => clearInterval(interval);
   }, [stats?.tokenMint]);
 
-  const solscanUrl = (signature: string) => `https://solscan.io/tx/${signature}`;
-  
   const isLive = !!stats?.tokenMint;
 
   return (
@@ -149,7 +144,7 @@ export function LiveDashboard() {
                <div className="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-700 dark:border-yellow-500 dark:bg-yellow-500/20"></div>
                <div className="w-3 h-3 rounded-full bg-green-500 border border-green-700 dark:border-green-500 dark:bg-green-500/20"></div>
              </div>
-             <span className="text-black dark:text-green-500 font-bold">GOLDFUNX_MONITOR_V2.1</span>
+             <span className="text-black dark:text-green-500 font-bold">FLAPXAU_MONITOR_V2.1</span>
           </div>
           <div className="flex gap-4 text-[10px] md:text-xs text-green-800 dark:text-green-600 uppercase tracking-wider font-bold">
              {isLive && countdown && (
@@ -173,7 +168,7 @@ export function LiveDashboard() {
                 {stats?.totalDistributions || 0}
               </div>
               <div className="text-xs text-black dark:text-green-600 font-bold bg-green-200 dark:bg-transparent dark:text-green-500 inline-block px-2 py-0.5 border border-black dark:border-none uppercase">
-                {stats?.tokenMint ? "ACTIVE" : "PENDING"} | {stats?.goldDistributionPercentage || "70"}% → $GOLD
+                {stats?.tokenMint ? "ACTIVE" : "PENDING"} | {stats?.goldDistributionPercentage || "50"}% → $GOLD
               </div>
             </div>
 
@@ -185,35 +180,23 @@ export function LiveDashboard() {
                 {(stats?.totalGoldDistributed || 0).toFixed(4)} <span className="text-lg text-black/50 dark:text-metal-gold/50 font-normal">OZ</span>
               </div>
               <div className="w-full bg-white dark:bg-green-900/20 h-3 mt-2 border-2 border-black dark:border-none overflow-hidden rounded-full dark:rounded-none">
-                <div className="h-full bg-metal-gold" style={{ width: `${stats?.goldDistributionPercentage || 70}%` }}></div>
+                <div className="h-full bg-metal-gold" style={{ width: `${stats?.goldDistributionPercentage || 50}%` }}></div>
               </div>
             </div>
 
             <div className="w-full h-px bg-black dark:bg-green-900 opacity-10 dark:opacity-30" />
 
             <div className="space-y-2">
-              <h3 className="text-black dark:text-blue-400 text-xs uppercase tracking-widest mb-1 font-bold">Token Buybacks ({stats?.buybackPercentage || "10"}%)</h3>
+              <h3 className="text-black dark:text-blue-400 text-xs uppercase tracking-widest mb-1 font-bold">Liquidity ({stats?.buybackPercentage || "50"}%)</h3>
               <div className="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tighter tabular-nums" data-testid="text-buyback">
-                {(stats?.totalTokenBuyback || 0).toFixed(2)} GOLDFUNX
+                {(stats?.totalTokenBuyback || 0).toFixed(2)} FLAPXAU
               </div>
               <div className="text-xs text-blue-700 dark:text-blue-400 font-bold bg-blue-100 dark:bg-transparent inline-block px-2 py-0.5 border border-blue-200 dark:border-none uppercase">
-                {stats?.majorHoldersPercentage || "70"}% Major | {stats?.mediumHoldersPercentage || "20"}% Medium | {stats?.buybackPercentage || "10"}% Buyback
+                {stats?.majorHoldersPercentage || "50"}% Dividends | {stats?.buybackPercentage || "50"}% Liquidity
               </div>
             </div>
 
             <div className="mt-auto pt-6 space-y-3">
-               <div className="flex justify-between text-xs text-black dark:text-green-800 font-bold uppercase">
-                  <span>$GOLD_CONTRACT</span>
-                  <a 
-                    href={`https://solscan.io/token/${stats?.goldMint}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-mono hover:text-metal-gold flex items-center gap-1"
-                  >
-                    ...{stats?.goldMint?.slice(-4) || "w6A"}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-               </div>
                <div className="flex justify-between text-xs text-black dark:text-green-800 font-bold uppercase">
                   <span>TOKEN_CA</span>
                   <span className="font-mono">
@@ -261,21 +244,9 @@ export function LiveDashboard() {
                      </div>
                      <div className="flex items-center gap-4">
                        <span className="font-bold tabular-nums text-black dark:text-green-100">
-                         {tx.type === "BUY GOLD" || tx.type === "DIVIDEND" ? `${tx.amount} OZ` : `${tx.amount} GOLDFUNX`}
+                         {tx.type === "BUY GOLD" || tx.type === "DIVIDEND" ? `${tx.amount} OZ` : `${tx.amount} FLAPXAU`}
                        </span>
-                       {tx.txSignature ? (
-                         <a 
-                           href={solscanUrl(tx.txSignature)} 
-                           target="_blank" 
-                           rel="noopener noreferrer"
-                           className="text-xs text-gray-400 dark:opacity-50 hidden md:flex items-center gap-1 hover:text-green-500"
-                         >
-                           {tx.hash}
-                           <ExternalLink className="w-3 h-3" />
-                         </a>
-                       ) : (
-                         <span className="text-xs text-gray-400 dark:opacity-30 hidden md:block font-mono">{tx.hash}</span>
-                       )}
+                       <span className="text-xs text-gray-400 dark:opacity-30 hidden md:block font-mono">{tx.hash}</span>
                        <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-black/50 rounded border border-gray-200 dark:border-white/10 text-gray-500 dark:text-green-500/50 font-bold">LIVE</span>
                      </div>
                    </motion.div>

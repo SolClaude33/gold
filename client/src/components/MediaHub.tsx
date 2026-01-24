@@ -14,7 +14,7 @@ export function MediaHub() {
       views: "850K Views"
     },
     {
-      title: "GOLDFUNX6900 EXPLAINED",
+      title: "FLAPXAU EXPLAINED",
       duration: "1:15",
       views: "2.5M Views"
     }

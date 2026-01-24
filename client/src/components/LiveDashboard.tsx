@@ -214,7 +214,9 @@ export function LiveDashboard() {
                     {parseFloat(stats.liquidityBalance).toFixed(4)} <span className="text-lg text-blue-600/50 dark:text-blue-400/50 font-normal">BNB</span>
                   </>
                 ) : (
-                  "0.0000 <span className=\"text-lg text-blue-600/50 dark:text-blue-400/50 font-normal\">BNB</span>"
+                  <>
+                    0.0000 <span className="text-lg text-blue-600/50 dark:text-blue-400/50 font-normal">BNB</span>
+                  </>
                 )}
               </div>
               <div className="text-xs text-blue-700 dark:text-blue-400 font-bold bg-blue-100 dark:bg-transparent inline-block px-2 py-0.5 border border-blue-200 dark:border-none uppercase">
@@ -236,7 +238,9 @@ export function LiveDashboard() {
                     {parseFloat(stats.fundsBalance).toFixed(4)} <span className="text-lg text-purple-600/50 dark:text-purple-400/50 font-normal">BNB</span>
                   </>
                 ) : (
-                  "0.0000 <span className=\"text-lg text-purple-600/50 dark:text-purple-400/50 font-normal\">BNB</span>"
+                  <>
+                    0.0000 <span className="text-lg text-purple-600/50 dark:text-purple-400/50 font-normal">BNB</span>
+                  </>
                 )}
               </div>
               <div className="text-xs text-purple-700 dark:text-purple-400 font-bold bg-purple-100 dark:bg-transparent inline-block px-2 py-0.5 border border-purple-200 dark:border-none uppercase">

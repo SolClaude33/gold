@@ -44,7 +44,33 @@ const TAX_PROCESSOR_ABI = [
   },
   {
     "type": "function",
+    "name": "totalTokensAddedToLiquidity",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "totalQuoteSentToMarketing",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "totalQuoteSentToFundsRecipient",
     "inputs": [],
     "outputs": [
       {
@@ -127,25 +153,43 @@ async function getContractData() {
     // Step 2: Read from tax processor contract
     console.log("[Contract] Reading from TaxProcessor:", taxProcessorAddress);
 
-    // Try to read current balances first (lpQuoteBalance, marketQuoteBalance)
-    // If those don't work, fallback to accumulated totals
-    const [liquidityBalance, treasuryBalance, totalLiquidity, totalTreasury] = await Promise.all([
+    // Read liquidity (BNB and tokens) and treasury/funds
+    const [
+      liquidityBNB,
+      liquidityTokens,
+      treasuryBNB,
+      totalLiquidityBNB,
+      totalLiquidityTokens,
+      totalTreasuryBNB
+    ] = await Promise.all([
+      // Try current balances first
       publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
         functionName: "lpQuoteBalance",
       }).catch((error: any) => {
-        console.log("[Contract] lpQuoteBalance not available, trying totalQuoteAddedToLiquidity...");
+        console.log("[Contract] lpQuoteBalance not available, will use totals...");
         return null;
       }),
+      // Try to read tokens added to liquidity
+      publicClient.readContract({
+        address: taxProcessorAddress as `0x${string}`,
+        abi: TAX_PROCESSOR_ABI,
+        functionName: "totalTokensAddedToLiquidity",
+      }).catch((error: any) => {
+        console.log("[Contract] totalTokensAddedToLiquidity not available:", error?.message || String(error));
+        return 0n;
+      }),
+      // Try current treasury balance
       publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
         functionName: "marketQuoteBalance",
       }).catch((error: any) => {
-        console.log("[Contract] marketQuoteBalance not available, trying totalQuoteSentToMarketing...");
+        console.log("[Contract] marketQuoteBalance not available, will use totals...");
         return null;
       }),
+      // Read total BNB added to liquidity
       publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
@@ -154,35 +198,62 @@ async function getContractData() {
         console.error("[Contract] Error reading totalQuoteAddedToLiquidity:", error?.message || String(error));
         return 0n;
       }),
+      // Read total tokens added to liquidity (already read above, but keep for clarity)
       publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
-        functionName: "totalQuoteSentToMarketing",
+        functionName: "totalTokensAddedToLiquidity",
       }).catch((error: any) => {
-        console.error("[Contract] Error reading totalQuoteSentToMarketing:", error?.message || String(error));
+        console.log("[Contract] totalTokensAddedToLiquidity not available:", error?.message || String(error));
+        return 0n;
+      }),
+      // Read total funds/treasury - try both functions
+      Promise.race([
+        publicClient.readContract({
+          address: taxProcessorAddress as `0x${string}`,
+          abi: TAX_PROCESSOR_ABI,
+          functionName: "totalQuoteSentToFundsRecipient",
+        }).catch(() => null),
+        publicClient.readContract({
+          address: taxProcessorAddress as `0x${string}`,
+          abi: TAX_PROCESSOR_ABI,
+          functionName: "totalQuoteSentToMarketing",
+        }).catch(() => null),
+      ]).then((result) => result || 0n).catch((error: any) => {
+        console.error("[Contract] Error reading treasury/funds:", error?.message || String(error));
         return 0n;
       })
     ]);
 
     // Use current balances if available, otherwise use accumulated totals
-    const liquidityValue = liquidityBalance !== null ? liquidityBalance : totalLiquidity;
-    const treasuryValue = treasuryBalance !== null ? treasuryBalance : totalTreasury;
+    const liquidityBNBValue = liquidityBNB !== null ? liquidityBNB : totalLiquidityBNB;
+    const treasuryBNBValue = treasuryBNB !== null ? treasuryBNB : totalTreasuryBNB;
+    const liquidityTokensValue = totalLiquidityTokens;
 
-    console.log("[Contract] Raw values - liquidity:", liquidityValue.toString(), "treasury:", treasuryValue.toString());
+    console.log("[Contract] Raw values:");
+    console.log("  - Liquidity BNB:", liquidityBNBValue.toString());
+    console.log("  - Liquidity Tokens:", liquidityTokensValue.toString());
+    console.log("  - Treasury/Funds BNB:", treasuryBNBValue.toString());
 
-    const liquidityBNB = formatEther(liquidityValue);
-    const treasuryBNB = formatEther(treasuryValue);
+    const liquidityBNBFormatted = formatEther(liquidityBNBValue);
+    const treasuryBNBFormatted = formatEther(treasuryBNBValue);
+    // Tokens are already in token units (not wei), so format accordingly
+    // Assuming 18 decimals for tokens (adjust if different)
+    const liquidityTokensFormatted = formatEther(liquidityTokensValue);
 
     console.log("[Contract] Successfully read contract data:", {
-      liquidityBNB,
-      treasuryBNB,
-      liquidityRaw: liquidityValue.toString(),
-      treasuryRaw: treasuryValue.toString(),
+      liquidityBNB: liquidityBNBFormatted,
+      liquidityTokens: liquidityTokensFormatted,
+      treasuryBNB: treasuryBNBFormatted,
+      liquidityBNBRaw: liquidityBNBValue.toString(),
+      liquidityTokensRaw: liquidityTokensValue.toString(),
+      treasuryBNBRaw: treasuryBNBValue.toString(),
     });
 
     return {
-      fundsBalance: treasuryBNB, // Treasury = marketing funds
-      liquidityBalance: liquidityBNB, // Liquidity
+      fundsBalance: treasuryBNBFormatted, // Treasury = funds recipient
+      liquidityBalance: liquidityBNBFormatted, // Liquidity BNB
+      liquidityTokens: liquidityTokensFormatted, // Liquidity Tokens
       tokenAddress: TOKEN_ADDRESS,
       taxProcessorAddress: taxProcessorAddress,
     };
@@ -465,13 +536,16 @@ async function registerRoutes(httpServer: Server, app: Express): Promise<Server>
       }
       
       let liquidityBNB = 0;
+      let liquidityTokens = 0;
       let fundsBNB = 0;
       
       try {
         liquidityBNB = contractData?.liquidityBalance ? parseFloat(String(contractData.liquidityBalance)) || 0 : 0;
+        liquidityTokens = contractData?.liquidityTokens ? parseFloat(String(contractData.liquidityTokens)) || 0 : 0;
         fundsBNB = contractData?.fundsBalance ? parseFloat(String(contractData.fundsBalance)) || 0 : 0;
+        console.log("[Stats] Parsed values - liquidityBNB:", liquidityBNB, "liquidityTokens:", liquidityTokens, "fundsBNB:", fundsBNB);
       } catch (parseError) {
-        console.log("[Stats] Error parsing contract values:", parseError);
+        console.error("[Stats] Error parsing contract values:", parseError);
       }
       
       const response = {
@@ -480,7 +554,7 @@ async function registerRoutes(httpServer: Server, app: Express): Promise<Server>
         totalGoldMajorHolders: 0,
         totalGoldMediumHolders: 0,
         totalTokenBuyback: liquidityBNB.toString(),
-        totalTreasury: fundsBNB.toString(),
+        totalTreasury: fundsBNB.toString(), // Treasury = funds from contract
         totalFeesClaimed: 0,
         totalBurned: 0,
         goldMint: "GoLDppdjB1vDTPSGxyMJFqdnj134yH6Prg9eqsGDiw6A",
@@ -494,8 +568,9 @@ async function registerRoutes(httpServer: Server, app: Express): Promise<Server>
         treasuryPercentage: "10",
         goldDistributionPercentage: "75",
         burnPercentage: "0",
-        fundsBalance: fundsBNB.toString(),
-        liquidityBalance: liquidityBNB.toString(),
+        fundsBalance: fundsBNB.toString(), // Treasury/Funds balance
+        liquidityBalance: liquidityBNB.toString(), // Liquidity BNB balance
+        liquidityTokens: liquidityTokens.toString(), // Liquidity Tokens balance
       };
 
       console.log("[Stats] Sending response:", JSON.stringify(response, null, 2));
@@ -524,6 +599,7 @@ async function registerRoutes(httpServer: Server, app: Express): Promise<Server>
         burnPercentage: "0",
         fundsBalance: "0",
         liquidityBalance: "0",
+        liquidityTokens: "0",
       });
     }
   });

@@ -44,7 +44,7 @@ const TAX_PROCESSOR_ABI = [
   },
   {
     "type": "function",
-    "name": "totalTokensAddedToLiquidity",
+    "name": "totalTokenAddedToLiquidity",
     "inputs": [],
     "outputs": [
       {
@@ -247,11 +247,11 @@ async function getContractData() {
       liquidityTokensValue = await publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
-        functionName: "totalTokensAddedToLiquidity",
+        functionName: "totalTokenAddedToLiquidity",
       });
       console.log("[Contract] Successfully read liquidity tokens:", liquidityTokensValue.toString());
     } catch (error: any) {
-      console.log("[Contract] totalTokensAddedToLiquidity not available (this is OK):", error?.message || String(error));
+      console.log("[Contract] totalTokenAddedToLiquidity not available (this is OK):", error?.message || String(error));
       // Tokens are optional, so we just continue without them
     }
 

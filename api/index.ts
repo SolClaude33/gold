@@ -27,29 +27,31 @@ async function initializeApp() {
   initPromise = (async () => {
     try {
       // Dynamically import routes module
-      // In Vercel, we need to use the .js extension even though source is .ts
+      // Vercel should include server/ files via vercel.json includeFiles
       if (!registerRoutes) {
         try {
-          // Try with .js extension first (for compiled output)
-          const routesModule = await import('../server/routes.js');
+          // Try without extension first (most common in Vercel)
+          const routesModule = await import('../server/routes');
           registerRoutes = routesModule.registerRoutes;
+          console.log('[Vercel] Successfully loaded routes module');
         } catch (e1: any) {
           try {
-            // Fallback to .ts extension (for TypeScript source)
-            const routesModule = await import('../server/routes.ts');
+            // Fallback to .js extension
+            const routesModule = await import('../server/routes.js');
             registerRoutes = routesModule.registerRoutes;
+            console.log('[Vercel] Successfully loaded routes module (.js)');
           } catch (e2: any) {
             try {
-              // Fallback without extension
-              const routesModule = await import('../server/routes');
+              // Fallback to .ts extension
+              const routesModule = await import('../server/routes.ts');
               registerRoutes = routesModule.registerRoutes;
+              console.log('[Vercel] Successfully loaded routes module (.ts)');
             } catch (e3: any) {
               console.error('[Vercel] Failed to import routes:', {
                 e1: e1?.message,
                 e2: e2?.message,
                 e3: e3?.message,
-                cwd: process.cwd(),
-                __dirname: typeof __dirname !== 'undefined' ? __dirname : 'undefined'
+                cwd: process.cwd()
               });
               throw new Error(`Cannot load routes module: ${e3?.message || String(e3)}`);
             }

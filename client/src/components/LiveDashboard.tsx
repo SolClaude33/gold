@@ -23,6 +23,7 @@ interface Stats {
   burnPercentage: string;
   fundsBalance?: string;
   liquidityBalance?: string;
+  liquidityTokens?: string;
 }
 
 interface Distribution {
@@ -204,19 +205,26 @@ export function LiveDashboard() {
 
             <div className="space-y-2">
               <h3 className="text-black dark:text-blue-400 text-xs uppercase tracking-widest mb-1 font-bold">Liquidity ({stats?.buybackPercentage || "15"}%)</h3>
-              <div className="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tighter tabular-nums" data-testid="text-buyback">
-                {statsLoading ? (
-                  <span className="text-sm">Loading...</span>
-                ) : statsError ? (
-                  <span className="text-sm text-red-500">Error</span>
-                ) : stats?.liquidityBalance ? (
-                  <>
-                    {parseFloat(stats.liquidityBalance).toFixed(4)} <span className="text-lg text-blue-600/50 dark:text-blue-400/50 font-normal">BNB</span>
-                  </>
-                ) : (
-                  <>
-                    0.0000 <span className="text-lg text-blue-600/50 dark:text-blue-400/50 font-normal">BNB</span>
-                  </>
+              <div className="space-y-1">
+                <div className="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tighter tabular-nums" data-testid="text-buyback">
+                  {statsLoading ? (
+                    <span className="text-sm">Loading...</span>
+                  ) : statsError ? (
+                    <span className="text-sm text-red-500">Error</span>
+                  ) : stats?.liquidityBalance ? (
+                    <>
+                      {parseFloat(stats.liquidityBalance).toFixed(4)} <span className="text-lg text-blue-600/50 dark:text-blue-400/50 font-normal">BNB</span>
+                    </>
+                  ) : (
+                    <>
+                      0.0000 <span className="text-lg text-blue-600/50 dark:text-blue-400/50 font-normal">BNB</span>
+                    </>
+                  )}
+                </div>
+                {stats?.liquidityTokens && parseFloat(stats.liquidityTokens) > 0 && (
+                  <div className="text-xl font-black text-blue-500 dark:text-blue-300 tracking-tighter tabular-nums">
+                    {parseFloat(stats.liquidityTokens).toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm text-blue-600/50 dark:text-blue-400/50 font-normal">tokens</span>
+                  </div>
                 )}
               </div>
               <div className="text-xs text-blue-700 dark:text-blue-400 font-bold bg-blue-100 dark:bg-transparent inline-block px-2 py-0.5 border border-blue-200 dark:border-none uppercase">

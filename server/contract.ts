@@ -1,5 +1,5 @@
 // EVM Contract Reader Service
-// Reads data from tax processor contract
+// Reads data from tax processor contract on BNB Smart Chain (BSC)
 
 const TOKEN_ADDRESS = "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777";
 const TAX_PROCESSOR_ADDRESS = "0xF7e36953aEDF448cbB9cE5fA123742e3543A82D8";
@@ -31,7 +31,8 @@ interface ContractData {
 
 export async function getContractData(): Promise<ContractData> {
   try {
-    const rpcUrl = process.env.EVM_RPC_URL || "https://eth.llamarpc.com";
+    // BNB Smart Chain (BSC) RPC
+    const rpcUrl = process.env.EVM_RPC_URL || "https://bsc-dataseed1.binance.org";
     
     // Try to use ethers if available
     let ethers;

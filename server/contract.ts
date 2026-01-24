@@ -35,14 +35,14 @@ export async function getContractData(): Promise<ContractData> {
     const rpcUrl = process.env.EVM_RPC_URL || "https://bsc-dataseed1.binance.org";
     
     // Try to use ethers if available
-    let ethers;
+    let ethers: any;
     try {
       ethers = await import("ethers");
     } catch {
       console.log("[Contract] ethers not available, using RPC calls");
     }
 
-    if (ethers) {
+    if (ethers && ethers.JsonRpcProvider) {
       try {
         const provider = new ethers.JsonRpcProvider(rpcUrl);
         const contract = new ethers.Contract(TAX_PROCESSOR_ADDRESS, TAX_PROCESSOR_ABI, provider);
@@ -58,8 +58,9 @@ export async function getContractData(): Promise<ContractData> {
           tokenAddress: TOKEN_ADDRESS,
           taxProcessorAddress: TAX_PROCESSOR_ADDRESS,
         };
-      } catch (error) {
-        console.error("[Contract] Error with ethers:", error);
+      } catch (error: any) {
+        console.error("[Contract] Error with ethers:", error?.message || error);
+        // Continue to fallback RPC method
       }
     }
 
@@ -68,9 +69,15 @@ export async function getContractData(): Promise<ContractData> {
     let fundsSelector: string;
     let liquiditySelector: string;
     
-    if (ethers) {
-      fundsSelector = ethers.id("funds()").slice(0, 10);
-      liquiditySelector = ethers.id("liquidity()").slice(0, 10);
+    if (ethers && ethers.id) {
+      try {
+        fundsSelector = ethers.id("funds()").slice(0, 10);
+        liquiditySelector = ethers.id("liquidity()").slice(0, 10);
+      } catch {
+        // Fallback to pre-computed selectors
+        fundsSelector = "0xa035b1fe";
+        liquiditySelector = "0xb0e21e8a";
+      }
     } else {
       // Pre-computed selectors (keccak256 hash first 4 bytes)
       // These are common selectors, but may need adjustment based on actual contract
@@ -78,38 +85,49 @@ export async function getContractData(): Promise<ContractData> {
       liquiditySelector = "0xb0e21e8a"; // keccak256("liquidity()")[:4]
     }
 
-    const [fundsResponse, liquidityResponse] = await Promise.all([
-      fetch(rpcUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "eth_call",
-          params: [{ to: TAX_PROCESSOR_ADDRESS, data: fundsSelector }, "latest"]
+    try {
+      const [fundsResponse, liquidityResponse] = await Promise.all([
+        fetch(rpcUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "eth_call",
+            params: [{ to: TAX_PROCESSOR_ADDRESS, data: fundsSelector }, "latest"]
+          })
+        }),
+        fetch(rpcUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 2,
+            method: "eth_call",
+            params: [{ to: TAX_PROCESSOR_ADDRESS, data: liquiditySelector }, "latest"]
+          })
         })
-      }),
-      fetch(rpcUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 2,
-          method: "eth_call",
-          params: [{ to: TAX_PROCESSOR_ADDRESS, data: liquiditySelector }, "latest"]
-        })
-      })
-    ]);
+      ]);
 
-    const fundsData = await fundsResponse.json();
-    const liquidityData = await liquidityResponse.json();
+      const fundsData = await fundsResponse.json();
+      const liquidityData = await liquidityResponse.json();
 
-    return {
-      fundsBalance: fundsData.result ? formatTokenAmount(fundsData.result, 18) : "0",
-      liquidityBalance: liquidityData.result ? formatTokenAmount(liquidityData.result, 18) : "0",
-      tokenAddress: TOKEN_ADDRESS,
-      taxProcessorAddress: TAX_PROCESSOR_ADDRESS,
-    };
+      return {
+        fundsBalance: fundsData.result ? formatTokenAmount(fundsData.result, 18) : "0",
+        liquidityBalance: liquidityData.result ? formatTokenAmount(liquidityData.result, 18) : "0",
+        tokenAddress: TOKEN_ADDRESS,
+        taxProcessorAddress: TAX_PROCESSOR_ADDRESS,
+      };
+    } catch (fetchError: any) {
+      console.error("[Contract] Error with RPC calls:", fetchError?.message || fetchError);
+      // Return zeros if RPC fails
+      return {
+        fundsBalance: "0",
+        liquidityBalance: "0",
+        tokenAddress: TOKEN_ADDRESS,
+        taxProcessorAddress: TAX_PROCESSOR_ADDRESS,
+      };
+    }
   } catch (error) {
     console.error("[Contract] Error reading contract data:", error);
     return {

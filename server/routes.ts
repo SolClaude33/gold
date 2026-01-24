@@ -607,11 +607,31 @@ export async function registerRoutes(
 
   app.get("/api/public/stats", async (req, res) => {
     try {
-      const distributions = await storage.getDistributions(100);
-      const config = await storage.getProtocolConfig();
+      // Try to get data from database, but don't fail if DB is not configured
+      let distributions: any[] = [];
+      let config: any = null;
       
-      // Get contract data from EVM contract
-      const contractData = await getContractData();
+      try {
+        distributions = await storage.getDistributions(100);
+        config = await storage.getProtocolConfig();
+      } catch (dbError) {
+        console.log("[Stats] Database not available, using defaults:", dbError);
+        // Continue with empty arrays and null config
+      }
+      
+      // Get contract data from EVM contract (non-blocking)
+      let contractData;
+      try {
+        contractData = await getContractData();
+      } catch (contractError) {
+        console.log("[Stats] Contract data not available, using defaults:", contractError);
+        contractData = {
+          fundsBalance: "0",
+          liquidityBalance: "0",
+          tokenAddress: "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777",
+          taxProcessorAddress: "0xF7e36953aEDF448cbB9cE5fA123742e3543A82D8",
+        };
+      }
       
       const totalGoldMajorHolders = distributions.reduce((sum, d) => 
         sum + parseFloat(d.goldPurchased || "0"), 0
@@ -644,12 +664,12 @@ export async function registerRoutes(
         totalGoldDistributed,
         totalGoldMajorHolders,
         totalGoldMediumHolders,
-        totalTokenBuyback: contractData.liquidityBalance || totalTokenBuyback.toString(),
-        totalTreasury: contractData.fundsBalance || totalTreasury.toString(),
+        totalTokenBuyback: contractData?.liquidityBalance || totalTokenBuyback.toString(),
+        totalTreasury: contractData?.fundsBalance || totalTreasury.toString(),
         totalFeesClaimed,
         totalBurned,
         goldMint: config?.goldMint || "GoLDppdjB1vDTPSGxyMJFqdnj134yH6Prg9eqsGDiw6A",
-        tokenMint: contractData.tokenAddress || config?.tokenMint || "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777",
+        tokenMint: contractData?.tokenAddress || config?.tokenMint || "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777",
         lastDistribution: distributions[0]?.timestamp || null,
         minimumHolderPercentage: config?.minimumHolderPercentage || "0.5",
         mediumHolderMinPercentage: config?.mediumHolderMinPercentage || "0.1",
@@ -659,12 +679,35 @@ export async function registerRoutes(
         treasuryPercentage: "10",
         goldDistributionPercentage: config?.goldDistributionPercentage || "75",
         burnPercentage: config?.burnPercentage || "0",
-        fundsBalance: contractData.fundsBalance,
-        liquidityBalance: contractData.liquidityBalance,
+        fundsBalance: contractData?.fundsBalance || "0",
+        liquidityBalance: contractData?.liquidityBalance || "0",
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
-      res.status(500).json({ error: "Failed to fetch stats" });
+      // Return default values instead of error
+      res.json({
+        totalDistributions: 0,
+        totalGoldDistributed: 0,
+        totalGoldMajorHolders: 0,
+        totalGoldMediumHolders: 0,
+        totalTokenBuyback: "0",
+        totalTreasury: "0",
+        totalFeesClaimed: 0,
+        totalBurned: 0,
+        goldMint: "GoLDppdjB1vDTPSGxyMJFqdnj134yH6Prg9eqsGDiw6A",
+        tokenMint: "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777",
+        lastDistribution: null,
+        minimumHolderPercentage: "0.5",
+        mediumHolderMinPercentage: "0.1",
+        majorHoldersPercentage: "75",
+        mediumHoldersPercentage: "0",
+        buybackPercentage: "15",
+        treasuryPercentage: "10",
+        goldDistributionPercentage: "75",
+        burnPercentage: "0",
+        fundsBalance: "0",
+        liquidityBalance: "0",
+      });
     }
   });
   
@@ -675,7 +718,8 @@ export async function registerRoutes(
       res.json(distributions.filter(d => d.status === "completed" || d.status === "pending"));
     } catch (error) {
       console.error("Error fetching distributions:", error);
-      res.status(500).json({ error: "Failed to fetch distributions" });
+      // Return empty array instead of error
+      res.json([]);
     }
   });
   

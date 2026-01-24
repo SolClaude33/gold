@@ -153,43 +153,62 @@ async function getContractData() {
     // Step 2: Read from tax processor contract
     console.log("[Contract] Reading from TaxProcessor:", taxProcessorAddress);
 
-    // Read liquidity (BNB and tokens) and treasury/funds
+    // Read liquidity (BNB) and treasury/funds - make it robust with multiple fallbacks
     const [
       liquidityBNB,
-      liquidityTokens,
       treasuryBNB,
       totalLiquidityBNB,
-      totalLiquidityTokens,
       totalTreasuryBNB
     ] = await Promise.all([
-      // Try current balances first
+      // Try current balance first, then total
       publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
         functionName: "lpQuoteBalance",
-      }).catch((error: any) => {
-        console.log("[Contract] lpQuoteBalance not available, will use totals...");
-        return null;
+      }).catch(async (error: any) => {
+        console.log("[Contract] lpQuoteBalance not available, trying totalQuoteAddedToLiquidity...");
+        try {
+          return await publicClient.readContract({
+            address: taxProcessorAddress as `0x${string}`,
+            abi: TAX_PROCESSOR_ABI,
+            functionName: "totalQuoteAddedToLiquidity",
+          });
+        } catch (e: any) {
+          console.error("[Contract] Error reading liquidity:", e?.message || String(e));
+          return 0n;
+        }
       }),
-      // Try to read tokens added to liquidity
-      publicClient.readContract({
-        address: taxProcessorAddress as `0x${string}`,
-        abi: TAX_PROCESSOR_ABI,
-        functionName: "totalTokensAddedToLiquidity",
-      }).catch((error: any) => {
-        console.log("[Contract] totalTokensAddedToLiquidity not available:", error?.message || String(error));
-        return 0n;
-      }),
-      // Try current treasury balance
+      // Try current treasury balance first, then try multiple functions for total
       publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
         functionName: "marketQuoteBalance",
-      }).catch((error: any) => {
-        console.log("[Contract] marketQuoteBalance not available, will use totals...");
-        return null;
+      }).catch(async (error: any) => {
+        console.log("[Contract] marketQuoteBalance not available, trying totals...");
+        // Try totalQuoteSentToFundsRecipient first
+        try {
+          const fundsRecipient = await publicClient.readContract({
+            address: taxProcessorAddress as `0x${string}`,
+            abi: TAX_PROCESSOR_ABI,
+            functionName: "totalQuoteSentToFundsRecipient",
+          });
+          return fundsRecipient;
+        } catch (e1: any) {
+          console.log("[Contract] totalQuoteSentToFundsRecipient not available, trying totalQuoteSentToMarketing...");
+          // Fallback to totalQuoteSentToMarketing
+          try {
+            return await publicClient.readContract({
+              address: taxProcessorAddress as `0x${string}`,
+              abi: TAX_PROCESSOR_ABI,
+              functionName: "totalQuoteSentToMarketing",
+            });
+          } catch (e2: any) {
+            console.error("[Contract] Error reading treasury/funds:", e2?.message || String(e2));
+            return 0n;
+          }
+        }
       }),
-      // Read total BNB added to liquidity
+      // Always read totalQuoteAddedToLiquidity as backup
       publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
@@ -198,37 +217,43 @@ async function getContractData() {
         console.error("[Contract] Error reading totalQuoteAddedToLiquidity:", error?.message || String(error));
         return 0n;
       }),
-      // Read total tokens added to liquidity (already read above, but keep for clarity)
+      // Try multiple functions for treasury total
       publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
-        functionName: "totalTokensAddedToLiquidity",
-      }).catch((error: any) => {
-        console.log("[Contract] totalTokensAddedToLiquidity not available:", error?.message || String(error));
-        return 0n;
-      }),
-      // Read total funds/treasury - try both functions
-      Promise.race([
-        publicClient.readContract({
-          address: taxProcessorAddress as `0x${string}`,
-          abi: TAX_PROCESSOR_ABI,
-          functionName: "totalQuoteSentToFundsRecipient",
-        }).catch(() => null),
-        publicClient.readContract({
-          address: taxProcessorAddress as `0x${string}`,
-          abi: TAX_PROCESSOR_ABI,
-          functionName: "totalQuoteSentToMarketing",
-        }).catch(() => null),
-      ]).then((result) => result || 0n).catch((error: any) => {
-        console.error("[Contract] Error reading treasury/funds:", error?.message || String(error));
-        return 0n;
+        functionName: "totalQuoteSentToFundsRecipient",
+      }).catch(async (error: any) => {
+        console.log("[Contract] totalQuoteSentToFundsRecipient not available, trying totalQuoteSentToMarketing...");
+        try {
+          return await publicClient.readContract({
+            address: taxProcessorAddress as `0x${string}`,
+            abi: TAX_PROCESSOR_ABI,
+            functionName: "totalQuoteSentToMarketing",
+          });
+        } catch (e: any) {
+          console.error("[Contract] Error reading treasury total:", e?.message || String(e));
+          return 0n;
+        }
       })
     ]);
 
     // Use current balances if available, otherwise use accumulated totals
-    const liquidityBNBValue = liquidityBNB !== null ? liquidityBNB : totalLiquidityBNB;
-    const treasuryBNBValue = treasuryBNB !== null ? treasuryBNB : totalTreasuryBNB;
-    const liquidityTokensValue = totalLiquidityTokens;
+    const liquidityBNBValue = liquidityBNB !== null && liquidityBNB > 0n ? liquidityBNB : totalLiquidityBNB;
+    const treasuryBNBValue = treasuryBNB !== null && treasuryBNB > 0n ? treasuryBNB : totalTreasuryBNB;
+    
+    // Try to read tokens (optional - if function doesn't exist, just skip it)
+    let liquidityTokensValue = 0n;
+    try {
+      liquidityTokensValue = await publicClient.readContract({
+        address: taxProcessorAddress as `0x${string}`,
+        abi: TAX_PROCESSOR_ABI,
+        functionName: "totalTokensAddedToLiquidity",
+      });
+      console.log("[Contract] Successfully read liquidity tokens:", liquidityTokensValue.toString());
+    } catch (error: any) {
+      console.log("[Contract] totalTokensAddedToLiquidity not available (this is OK):", error?.message || String(error));
+      // Tokens are optional, so we just continue without them
+    }
 
     console.log("[Contract] Raw values:");
     console.log("  - Liquidity BNB:", liquidityBNBValue.toString());
@@ -239,7 +264,7 @@ async function getContractData() {
     const treasuryBNBFormatted = formatEther(treasuryBNBValue);
     // Tokens are already in token units (not wei), so format accordingly
     // Assuming 18 decimals for tokens (adjust if different)
-    const liquidityTokensFormatted = formatEther(liquidityTokensValue);
+    const liquidityTokensFormatted = liquidityTokensValue > 0n ? formatEther(liquidityTokensValue) : "0";
 
     console.log("[Contract] Successfully read contract data:", {
       liquidityBNB: liquidityBNBFormatted,
@@ -250,13 +275,19 @@ async function getContractData() {
       treasuryBNBRaw: treasuryBNBValue.toString(),
     });
 
-    return {
+    const result: any = {
       fundsBalance: treasuryBNBFormatted, // Treasury = funds recipient
       liquidityBalance: liquidityBNBFormatted, // Liquidity BNB
-      liquidityTokens: liquidityTokensFormatted, // Liquidity Tokens
       tokenAddress: TOKEN_ADDRESS,
       taxProcessorAddress: taxProcessorAddress,
     };
+
+    // Only include liquidityTokens if we successfully read them
+    if (liquidityTokensValue > 0n) {
+      result.liquidityTokens = liquidityTokensFormatted;
+    }
+
+    return result;
   } catch (error: any) {
     console.error("[Contract] Error reading contract data:", error?.message || String(error));
     console.error("[Contract] Error stack:", error?.stack);

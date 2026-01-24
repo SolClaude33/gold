@@ -19,6 +19,7 @@ app.use(express.urlencoded({ extended: false }));
 let httpServer: any;
 let routesInitialized = false;
 let initPromise: Promise<void> | null = null;
+let registerRoutes: any = null;
 
 async function initializeApp() {
   if (routesInitialized) return;
@@ -57,6 +58,10 @@ async function initializeApp() {
             }
           }
         }
+      }
+      
+      if (!registerRoutes) {
+        throw new Error('registerRoutes is still not defined after import attempts');
       }
       
       httpServer = createServer(app);

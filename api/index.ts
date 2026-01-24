@@ -1,7 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import express from 'express';
-import { registerRoutes } from '../server/routes';
 import { createServer } from 'http';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Dynamic import to handle module resolution in Vercel
+let registerRoutes: any;
 
 // Create Express app
 const app = express();
@@ -27,6 +31,38 @@ async function initializeApp() {
   
   initPromise = (async () => {
     try {
+      // Dynamically import routes module with multiple fallback strategies
+      if (!registerRoutes) {
+        const importPaths = [
+          '../server/routes.js',
+          '../server/routes',
+          './server/routes.js',
+          './server/routes',
+          path.join(process.cwd(), 'server', 'routes.js'),
+          path.join(process.cwd(), 'server', 'routes'),
+        ];
+        
+        let lastError: any = null;
+        for (const importPath of importPaths) {
+          try {
+            const routesModule = await import(importPath);
+            if (routesModule && routesModule.registerRoutes) {
+              registerRoutes = routesModule.registerRoutes;
+              console.log(`[Vercel] Successfully loaded routes from: ${importPath}`);
+              break;
+            }
+          } catch (e: any) {
+            lastError = e;
+            console.log(`[Vercel] Failed to import from ${importPath}:`, e?.message || String(e));
+          }
+        }
+        
+        if (!registerRoutes) {
+          console.error('[Vercel] All import attempts failed. Last error:', lastError);
+          throw new Error(`Cannot load routes module. Last error: ${lastError?.message || String(lastError)}`);
+        }
+      }
+      
       httpServer = createServer(app);
       await registerRoutes(httpServer, app);
       

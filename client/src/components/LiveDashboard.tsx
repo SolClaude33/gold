@@ -50,14 +50,26 @@ export function LiveDashboard() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [countdown, setCountdown] = useState<string>("");
 
-  const { data: stats } = useQuery<Stats>({
+  const { data: stats, error: statsError, isLoading: statsLoading } = useQuery<Stats>({
     queryKey: ["public-stats"],
     queryFn: async () => {
-      const res = await fetch("/api/public/stats");
-      if (!res.ok) throw new Error("Failed to fetch stats");
-      return res.json();
+      try {
+        const res = await fetch("/api/public/stats");
+        if (!res.ok) {
+          console.error("[Dashboard] Stats fetch failed:", res.status, res.statusText);
+          throw new Error(`Failed to fetch stats: ${res.status} ${res.statusText}`);
+        }
+        const data = await res.json();
+        console.log("[Dashboard] Stats data received:", data);
+        return data;
+      } catch (error) {
+        console.error("[Dashboard] Error fetching stats:", error);
+        throw error;
+      }
     },
     refetchInterval: 30000,
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const { data: distributions } = useQuery<Distribution[]>({
@@ -193,7 +205,17 @@ export function LiveDashboard() {
             <div className="space-y-2">
               <h3 className="text-black dark:text-blue-400 text-xs uppercase tracking-widest mb-1 font-bold">Liquidity ({stats?.buybackPercentage || "15"}%)</h3>
               <div className="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tighter tabular-nums" data-testid="text-buyback">
-                {stats?.liquidityBalance ? parseFloat(stats.liquidityBalance).toFixed(4) : "0.0000"} <span className="text-lg text-blue-600/50 dark:text-blue-400/50 font-normal">BNB</span>
+                {statsLoading ? (
+                  <span className="text-sm">Loading...</span>
+                ) : statsError ? (
+                  <span className="text-sm text-red-500">Error</span>
+                ) : stats?.liquidityBalance ? (
+                  <>
+                    {parseFloat(stats.liquidityBalance).toFixed(4)} <span className="text-lg text-blue-600/50 dark:text-blue-400/50 font-normal">BNB</span>
+                  </>
+                ) : (
+                  "0.0000 <span className=\"text-lg text-blue-600/50 dark:text-blue-400/50 font-normal\">BNB</span>"
+                )}
               </div>
               <div className="text-xs text-blue-700 dark:text-blue-400 font-bold bg-blue-100 dark:bg-transparent inline-block px-2 py-0.5 border border-blue-200 dark:border-none uppercase">
                 {stats?.majorHoldersPercentage || "75"}% Dividends | {stats?.buybackPercentage || "15"}% Liquidity | {stats?.treasuryPercentage || "10"}% Treasury
@@ -205,7 +227,17 @@ export function LiveDashboard() {
             <div className="space-y-2">
               <h3 className="text-black dark:text-purple-400 text-xs uppercase tracking-widest mb-1 font-bold">Treasury ({stats?.treasuryPercentage || "10"}%)</h3>
               <div className="text-3xl font-black text-purple-600 dark:text-purple-400 tracking-tighter tabular-nums" data-testid="text-treasury">
-                {stats?.fundsBalance ? parseFloat(stats.fundsBalance).toFixed(4) : "0.0000"} <span className="text-lg text-purple-600/50 dark:text-purple-400/50 font-normal">BNB</span>
+                {statsLoading ? (
+                  <span className="text-sm">Loading...</span>
+                ) : statsError ? (
+                  <span className="text-sm text-red-500">Error</span>
+                ) : stats?.fundsBalance ? (
+                  <>
+                    {parseFloat(stats.fundsBalance).toFixed(4)} <span className="text-lg text-purple-600/50 dark:text-purple-400/50 font-normal">BNB</span>
+                  </>
+                ) : (
+                  "0.0000 <span className=\"text-lg text-purple-600/50 dark:text-purple-400/50 font-normal\">BNB</span>"
+                )}
               </div>
               <div className="text-xs text-purple-700 dark:text-purple-400 font-bold bg-purple-100 dark:bg-transparent inline-block px-2 py-0.5 border border-purple-200 dark:border-none uppercase">
                 Treasury Reserve

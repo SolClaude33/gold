@@ -73,16 +73,20 @@ export async function getContractData(): Promise<ContractData> {
       try {
         fundsSelector = ethers.id("funds()").slice(0, 10);
         liquiditySelector = ethers.id("liquidity()").slice(0, 10);
+        console.log("[Contract] Generated selectors:", { fundsSelector, liquiditySelector });
       } catch {
         // Fallback to pre-computed selectors
+        // keccak256("funds()") = 0xa035b1fe...
+        // keccak256("liquidity()") = 0xb0e21e8a...
         fundsSelector = "0xa035b1fe";
         liquiditySelector = "0xb0e21e8a";
+        console.log("[Contract] Using pre-computed selectors:", { fundsSelector, liquiditySelector });
       }
     } else {
       // Pre-computed selectors (keccak256 hash first 4 bytes)
-      // These are common selectors, but may need adjustment based on actual contract
       fundsSelector = "0xa035b1fe"; // keccak256("funds()")[:4]
       liquiditySelector = "0xb0e21e8a"; // keccak256("liquidity()")[:4]
+      console.log("[Contract] Using pre-computed selectors (no ethers):", { fundsSelector, liquiditySelector });
     }
 
     try {
@@ -125,22 +129,33 @@ export async function getContractData(): Promise<ContractData> {
       if (fundsResponse && fundsResponse.ok) {
         try {
           fundsData = await fundsResponse.json();
+          console.log("[Contract] Funds response:", fundsData);
         } catch (e) {
-          console.log("[Contract] Error parsing funds response");
+          console.log("[Contract] Error parsing funds response:", e);
         }
+      } else {
+        console.log("[Contract] Funds response not OK:", fundsResponse?.status, fundsResponse?.statusText);
       }
 
       if (liquidityResponse && liquidityResponse.ok) {
         try {
           liquidityData = await liquidityResponse.json();
+          console.log("[Contract] Liquidity response:", liquidityData);
         } catch (e) {
-          console.log("[Contract] Error parsing liquidity response");
+          console.log("[Contract] Error parsing liquidity response:", e);
         }
+      } else {
+        console.log("[Contract] Liquidity response not OK:", liquidityResponse?.status, liquidityResponse?.statusText);
       }
 
+      const fundsBalance = fundsData.result ? formatTokenAmount(fundsData.result, 18) : "0";
+      const liquidityBalance = liquidityData.result ? formatTokenAmount(liquidityData.result, 18) : "0";
+      
+      console.log("[Contract] Final balances:", { fundsBalance, liquidityBalance });
+
       return {
-        fundsBalance: fundsData.result ? formatTokenAmount(fundsData.result, 18) : "0",
-        liquidityBalance: liquidityData.result ? formatTokenAmount(liquidityData.result, 18) : "0",
+        fundsBalance,
+        liquidityBalance,
         tokenAddress: TOKEN_ADDRESS,
         taxProcessorAddress: TAX_PROCESSOR_ADDRESS,
       };

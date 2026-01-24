@@ -255,10 +255,15 @@ export async function registerRoutes(
       try {
         const contractModule = await import("./contract");
         if (contractModule && contractModule.getContractData) {
+          console.log("[Stats] Calling getContractData...");
           contractData = await contractModule.getContractData();
+          console.log("[Stats] Contract data received:", contractData);
+        } else {
+          console.log("[Stats] getContractData function not found in module");
         }
       } catch (contractError: any) {
         console.log("[Stats] Contract data not available, using defaults:", contractError?.message || String(contractError));
+        console.log("[Stats] Contract error stack:", contractError?.stack);
       }
       
       // Convert wei to BNB (18 decimals) - safely parse
@@ -296,6 +301,7 @@ export async function registerRoutes(
         liquidityBalance: liquidityBNB.toString(),
       };
 
+      console.log("[Stats] Sending response:", JSON.stringify(response, null, 2));
       res.status(200).json(response);
     } catch (error: any) {
       console.error("[Stats] Unexpected error:", error?.message || String(error));

@@ -1,11 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import express from 'express';
 import { createServer } from 'http';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Dynamic import to handle module resolution in Vercel
-let registerRoutes: any;
 
 // Create Express app
 const app = express();
@@ -31,35 +26,34 @@ async function initializeApp() {
   
   initPromise = (async () => {
     try {
-      // Dynamically import routes module with multiple fallback strategies
+      // Dynamically import routes module
+      // In Vercel, we need to use the .js extension even though source is .ts
       if (!registerRoutes) {
-        const importPaths = [
-          '../server/routes.js',
-          '../server/routes',
-          './server/routes.js',
-          './server/routes',
-          path.join(process.cwd(), 'server', 'routes.js'),
-          path.join(process.cwd(), 'server', 'routes'),
-        ];
-        
-        let lastError: any = null;
-        for (const importPath of importPaths) {
+        try {
+          // Try with .js extension first (for compiled output)
+          const routesModule = await import('../server/routes.js');
+          registerRoutes = routesModule.registerRoutes;
+        } catch (e1: any) {
           try {
-            const routesModule = await import(importPath);
-            if (routesModule && routesModule.registerRoutes) {
+            // Fallback to .ts extension (for TypeScript source)
+            const routesModule = await import('../server/routes.ts');
+            registerRoutes = routesModule.registerRoutes;
+          } catch (e2: any) {
+            try {
+              // Fallback without extension
+              const routesModule = await import('../server/routes');
               registerRoutes = routesModule.registerRoutes;
-              console.log(`[Vercel] Successfully loaded routes from: ${importPath}`);
-              break;
+            } catch (e3: any) {
+              console.error('[Vercel] Failed to import routes:', {
+                e1: e1?.message,
+                e2: e2?.message,
+                e3: e3?.message,
+                cwd: process.cwd(),
+                __dirname: typeof __dirname !== 'undefined' ? __dirname : 'undefined'
+              });
+              throw new Error(`Cannot load routes module: ${e3?.message || String(e3)}`);
             }
-          } catch (e: any) {
-            lastError = e;
-            console.log(`[Vercel] Failed to import from ${importPath}:`, e?.message || String(e));
           }
-        }
-        
-        if (!registerRoutes) {
-          console.error('[Vercel] All import attempts failed. Last error:', lastError);
-          throw new Error(`Cannot load routes module. Last error: ${lastError?.message || String(lastError)}`);
         }
       }
       

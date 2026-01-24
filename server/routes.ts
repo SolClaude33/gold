@@ -1,7 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import crypto from "crypto";
-import { getContractData } from "./contract";
 // Blockchain features disabled - Solana integration removed
 // import { solanaService } from "./solana";
 
@@ -243,26 +242,37 @@ export async function registerRoutes(
   });
 
   app.get("/api/public/stats", async (req, res) => {
+    // Always return 200 OK, even if contract call fails
     try {
-      // Get contract data from EVM contract
-      let contractData;
+      // Safely import and call contract data
+      let contractData: any = {
+        fundsBalance: "0",
+        liquidityBalance: "0",
+        tokenAddress: "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777",
+        taxProcessorAddress: "0xF7e36953aEDF448cbB9cE5fA123742e3543A82D8",
+      };
+
       try {
-        contractData = await getContractData();
+        const contractModule = await import("./contract");
+        if (contractModule && contractModule.getContractData) {
+          contractData = await contractModule.getContractData();
+        }
       } catch (contractError: any) {
-        console.log("[Stats] Contract data not available, using defaults:", contractError?.message || contractError);
-        contractData = {
-          fundsBalance: "0",
-          liquidityBalance: "0",
-          tokenAddress: "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777",
-          taxProcessorAddress: "0xF7e36953aEDF448cbB9cE5fA123742e3543A82D8",
-        };
+        console.log("[Stats] Contract data not available, using defaults:", contractError?.message || String(contractError));
       }
       
-      // Convert wei to BNB (18 decimals)
-      const liquidityBNB = contractData?.liquidityBalance ? parseFloat(contractData.liquidityBalance) : 0;
-      const fundsBNB = contractData?.fundsBalance ? parseFloat(contractData.fundsBalance) : 0;
+      // Convert wei to BNB (18 decimals) - safely parse
+      let liquidityBNB = 0;
+      let fundsBNB = 0;
       
-      res.status(200).json({
+      try {
+        liquidityBNB = contractData?.liquidityBalance ? parseFloat(String(contractData.liquidityBalance)) || 0 : 0;
+        fundsBNB = contractData?.fundsBalance ? parseFloat(String(contractData.fundsBalance)) || 0 : 0;
+      } catch (parseError) {
+        console.log("[Stats] Error parsing contract values:", parseError);
+      }
+      
+      const response = {
         totalDistributions: 0,
         totalGoldDistributed: 0,
         totalGoldMajorHolders: 0,
@@ -284,10 +294,12 @@ export async function registerRoutes(
         burnPercentage: "0",
         fundsBalance: fundsBNB.toString(),
         liquidityBalance: liquidityBNB.toString(),
-      });
+      };
+
+      res.status(200).json(response);
     } catch (error: any) {
-      console.error("[Stats] Error fetching stats:", error?.message || error);
-      // Return default values instead of error
+      console.error("[Stats] Unexpected error:", error?.message || String(error));
+      // Always return 200 OK with default values
       res.status(200).json({
         totalDistributions: 0,
         totalGoldDistributed: 0,
@@ -315,8 +327,13 @@ export async function registerRoutes(
   });
   
   app.get("/api/public/distributions", async (req, res) => {
-    // Database removed - return empty array
-    res.json([]);
+    // Database removed - return empty array, always 200 OK
+    try {
+      res.status(200).json([]);
+    } catch (error: any) {
+      console.error("[Distributions] Error:", error?.message || String(error));
+      res.status(200).json([]);
+    }
   });
   
   app.get("/api/public/distributions/:id", async (req, res) => {

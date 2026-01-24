@@ -59,7 +59,7 @@ export async function getContractData(): Promise<ContractData> {
           taxProcessorAddress: TAX_PROCESSOR_ADDRESS,
         };
       } catch (error: any) {
-        console.error("[Contract] Error with ethers:", error?.message || error);
+        console.log("[Contract] Error with ethers, using RPC fallback:", error?.message || String(error));
         // Continue to fallback RPC method
       }
     }
@@ -86,31 +86,57 @@ export async function getContractData(): Promise<ContractData> {
     }
 
     try {
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+      const fetchOptions = {
+        method: "POST" as const,
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+      };
+
       const [fundsResponse, liquidityResponse] = await Promise.all([
         fetch(rpcUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          ...fetchOptions,
           body: JSON.stringify({
             jsonrpc: "2.0",
             id: 1,
             method: "eth_call",
             params: [{ to: TAX_PROCESSOR_ADDRESS, data: fundsSelector }, "latest"]
           })
-        }),
+        }).catch(() => null),
         fetch(rpcUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          ...fetchOptions,
           body: JSON.stringify({
             jsonrpc: "2.0",
             id: 2,
             method: "eth_call",
             params: [{ to: TAX_PROCESSOR_ADDRESS, data: liquiditySelector }, "latest"]
           })
-        })
+        }).catch(() => null)
       ]);
 
-      const fundsData = await fundsResponse.json();
-      const liquidityData = await liquidityResponse.json();
+      clearTimeout(timeoutId);
+
+      let fundsData: any = { result: null };
+      let liquidityData: any = { result: null };
+
+      if (fundsResponse && fundsResponse.ok) {
+        try {
+          fundsData = await fundsResponse.json();
+        } catch (e) {
+          console.log("[Contract] Error parsing funds response");
+        }
+      }
+
+      if (liquidityResponse && liquidityResponse.ok) {
+        try {
+          liquidityData = await liquidityResponse.json();
+        } catch (e) {
+          console.log("[Contract] Error parsing liquidity response");
+        }
+      }
 
       return {
         fundsBalance: fundsData.result ? formatTokenAmount(fundsData.result, 18) : "0",
@@ -119,7 +145,7 @@ export async function getContractData(): Promise<ContractData> {
         taxProcessorAddress: TAX_PROCESSOR_ADDRESS,
       };
     } catch (fetchError: any) {
-      console.error("[Contract] Error with RPC calls:", fetchError?.message || fetchError);
+      console.log("[Contract] Error with RPC calls:", fetchError?.message || String(fetchError));
       // Return zeros if RPC fails
       return {
         fundsBalance: "0",
@@ -128,8 +154,8 @@ export async function getContractData(): Promise<ContractData> {
         taxProcessorAddress: TAX_PROCESSOR_ADDRESS,
       };
     }
-  } catch (error) {
-    console.error("[Contract] Error reading contract data:", error);
+  } catch (error: any) {
+    console.log("[Contract] Error reading contract data:", error?.message || String(error));
     return {
       fundsBalance: "0",
       liquidityBalance: "0",

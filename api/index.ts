@@ -166,30 +166,20 @@ async function getContractData() {
     // Step 2: Read from tax processor contract
     console.log("[Contract] Reading from TaxProcessor:", taxProcessorAddress);
 
-    // Read liquidity (BNB) and treasury/funds - make it robust with multiple fallbacks
+    // Read liquidity (BNB) and treasury/funds - use total accumulated values
     const [
-      liquidityBNB,
-      treasuryBNB,
       totalLiquidityBNB,
+      treasuryBNB,
       totalTreasuryBNB
     ] = await Promise.all([
-      // Try current balance first, then total
+      // Read totalQuoteAddedToLiquidity (total accumulated) - this is what we want to display
       publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
-        functionName: "lpQuoteBalance",
-      }).catch(async (error: any) => {
-        console.log("[Contract] lpQuoteBalance not available, trying totalQuoteAddedToLiquidity...");
-        try {
-          return await publicClient.readContract({
-            address: taxProcessorAddress as `0x${string}`,
-            abi: TAX_PROCESSOR_ABI,
-            functionName: "totalQuoteAddedToLiquidity",
-          });
-        } catch (e: any) {
-          console.error("[Contract] Error reading liquidity:", e?.message || String(e));
-          return 0n;
-        }
+        functionName: "totalQuoteAddedToLiquidity",
+      }).catch((error: any) => {
+        console.error("[Contract] Error reading totalQuoteAddedToLiquidity:", error?.message || String(error));
+        return 0n;
       }),
       // Try current treasury balance first, then try totalQuoteSentToMarketing
       publicClient.readContract({
@@ -210,15 +200,6 @@ async function getContractData() {
           return 0n;
         }
       }),
-      // Always read totalQuoteAddedToLiquidity as backup
-      publicClient.readContract({
-        address: taxProcessorAddress as `0x${string}`,
-        abi: TAX_PROCESSOR_ABI,
-        functionName: "totalQuoteAddedToLiquidity",
-      }).catch((error: any) => {
-        console.error("[Contract] Error reading totalQuoteAddedToLiquidity:", error?.message || String(error));
-        return 0n;
-      }),
       // Read total treasury (totalQuoteSentToMarketing)
       publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
@@ -230,8 +211,8 @@ async function getContractData() {
       })
     ]);
 
-    // Use current balances if available, otherwise use accumulated totals
-    const liquidityBNBValue = liquidityBNB !== null && liquidityBNB > 0n ? liquidityBNB : totalLiquidityBNB;
+    // Use total accumulated values (not current balances)
+    const liquidityBNBValue = totalLiquidityBNB;
     const treasuryBNBValue = treasuryBNB !== null && treasuryBNB > 0n ? treasuryBNB : totalTreasuryBNB;
     
     // Try to read tokens (optional - if function doesn't exist, just skip it)

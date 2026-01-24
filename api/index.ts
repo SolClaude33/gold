@@ -34,36 +34,18 @@ async function initializeApp() {
   
   initPromise = (async () => {
     try {
-      // Dynamically import routes module
-      // Vercel should include server/ files via vercel.json includeFiles
+      // Import routes module
+      // Try importing from api/routes.ts first (same directory), then fallback to server/routes
       if (!registerRoutes) {
-        // Try multiple import strategies with file existence checks
-        const possiblePaths = [
-          path.resolve(__dirname, '..', 'server', 'routes.ts'),
-          path.resolve(__dirname, '..', 'server', 'routes.js'),
-          path.resolve(process.cwd(), 'server', 'routes.ts'),
-          path.resolve(process.cwd(), 'server', 'routes.js'),
-          path.resolve(__dirname, 'server', 'routes.ts'),
-          path.resolve(__dirname, 'server', 'routes.js'),
-        ];
-        
-        console.log('[Vercel] Checking for routes file...');
-        console.log('[Vercel] Debug paths:', {
-          cwd: process.cwd(),
-          __dirname,
-          possiblePaths: possiblePaths.map(p => ({ path: p, exists: existsSync(p) }))
-        });
-        
-        // First try relative imports (most reliable)
-        const relativeImports = [
-          '../server/routes',
+        const importPaths = [
+          './routes',           // api/routes.ts (re-export)
+          './routes.js',
+          '../server/routes',   // Direct from server
           '../server/routes.js',
-          './server/routes',
-          './server/routes.js',
         ];
         
         let lastError: any = null;
-        for (const importPath of relativeImports) {
+        for (const importPath of importPaths) {
           try {
             const routesModule = await import(importPath);
             if (routesModule && routesModule.registerRoutes) {
@@ -74,26 +56,6 @@ async function initializeApp() {
           } catch (e: any) {
             lastError = e;
             console.log(`[Vercel] Failed to import from ${importPath}:`, e?.message || String(e));
-          }
-        }
-        
-        // If relative imports failed, try absolute paths with file:// protocol
-        if (!registerRoutes) {
-          for (const filePath of possiblePaths) {
-            if (existsSync(filePath)) {
-              try {
-                const fileUrl = `file://${filePath}`;
-                const routesModule = await import(fileUrl);
-                if (routesModule && routesModule.registerRoutes) {
-                  registerRoutes = routesModule.registerRoutes;
-                  console.log(`[Vercel] Successfully loaded routes from absolute path: ${filePath}`);
-                  break;
-                }
-              } catch (e: any) {
-                lastError = e;
-                console.log(`[Vercel] Failed to import from ${filePath}:`, e?.message || String(e));
-              }
-            }
           }
         }
         

@@ -5,6 +5,9 @@
   "functions": {
     "api/index.ts": {
       "includeFiles": "server/**"
+    },
+    "api/routes.ts": {
+      "includeFiles": "server/**"
     }
   },
   "rewrites": [

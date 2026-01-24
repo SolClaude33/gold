@@ -7,7 +7,7 @@ import { createPublicClient, http, formatEther, type PublicClient } from "viem";
 import { bsc } from "viem/chains";
 
 // ===== CONTRACT CONFIGURATION =====
-const TOKEN_ADDRESS = process.env.TOKEN_CONTRACT_ADDRESS || "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777";
+const TOKEN_ADDRESS = process.env.TOKEN_CONTRACT_ADDRESS;
 const TAX_PROCESSOR_ADDRESS = process.env.TAX_PROCESSOR_ADDRESS || null; // Will be read from token contract if not provided
 
 // Token Contract ABI - to read taxProcessor address
@@ -85,6 +85,11 @@ const TAX_PROCESSOR_ABI = [
 
 async function getContractData() {
   try {
+    // Validate required environment variable
+    if (!TOKEN_ADDRESS) {
+      throw new Error("TOKEN_CONTRACT_ADDRESS environment variable is required");
+    }
+
     const rpcUrl = process.env.EVM_RPC_URL || "https://bsc-dataseed1.binance.org";
     console.log("[Contract] Initializing viem client for BSC...");
     console.log("[Contract] RPC URL:", rpcUrl);
@@ -187,7 +192,7 @@ async function getContractData() {
     return {
       fundsBalance: "0",
       liquidityBalance: "0",
-      tokenAddress: TOKEN_ADDRESS,
+      tokenAddress: TOKEN_ADDRESS || "not configured",
       taxProcessorAddress: TAX_PROCESSOR_ADDRESS || "unknown",
     };
   }

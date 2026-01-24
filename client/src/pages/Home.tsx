@@ -42,7 +42,7 @@ export default function Home() {
             <div className="flex justify-center gap-8 mb-8">
                 <a href="https://x.com/goldenbao" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-metal-gold transition-colors">Twitter</a>
                 <a href="#" className="text-gray-400 hover:text-metal-gold transition-colors">DexScreener</a>
-                <a href="#" className="text-gray-400 hover:text-metal-gold transition-colors">Pump.fun</a>
+                <a href="#" className="text-gray-400 hover:text-metal-gold transition-colors">Four.meme</a>
             </div>
             <p className="text-gray-600 text-sm max-w-2xl mx-auto">
                 DISCLAIMER: This is a memecoin. The "Gold" mentioned are tokenized assets. 

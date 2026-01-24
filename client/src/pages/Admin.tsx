@@ -440,7 +440,7 @@ export default function Admin() {
               >
                 <div className="flex items-center justify-center gap-2">
                   <RefreshCw className={`w-4 h-4 ${claimFeesMutation.isPending ? "animate-spin" : ""}`} />
-                  {claimFeesMutation.isPending ? "Claiming..." : "Claim Pumpfun Fees"}
+                  {claimFeesMutation.isPending ? "Claiming..." : "Claim Fees"}
                 </div>
               </button>
 

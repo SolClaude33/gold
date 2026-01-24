@@ -2,7 +2,22 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import crypto from "crypto";
-import { solanaService } from "./solana";
+// Blockchain features disabled - Solana integration removed
+// import { solanaService } from "./solana";
+
+// Mock solanaService with disabled functionality
+const solanaService = {
+  initialize: async () => ({ ready: false, error: "Blockchain features disabled" }),
+  executeDistribution: async () => ({ success: false, error: "Blockchain features disabled" }),
+  getHoldersByTier: async () => ({ majorHolders: [], mediumHolders: [] }),
+  getWalletAddress: () => null,
+  getSOLBalance: async () => 0,
+  claimPumpfunFees: async () => ({ success: false, amount: 0, error: "Blockchain features disabled" }),
+  testBuyback: async () => ({ success: false, tokenAmount: 0, error: "Blockchain features disabled" }),
+  sellToken: async () => ({ success: false, solAmount: 0, error: "Blockchain features disabled" }),
+  getTokenBalance: async () => 0,
+  swapSOLForGold: async () => ({ success: false, goldAmount: 0, error: "Blockchain features disabled" }),
+};
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
@@ -132,8 +147,9 @@ export async function registerRoutes(
     }
   };
   
-  setInterval(runHourlyDistribution, 15 * 60 * 1000);
-  console.log("[Scheduler] Hourly distribution scheduler initialized");
+  // Blockchain scheduler disabled
+  // setInterval(runHourlyDistribution, 15 * 60 * 1000);
+  // console.log("[Scheduler] Hourly distribution scheduler initialized");
   
   app.post("/api/admin/login", async (req, res) => {
     const { password } = req.body;
@@ -373,7 +389,7 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Invalid amount. Provide a positive token amount." });
       }
 
-      console.log(`[Admin] Test sell requested: ${amount} GoldFunX tokens`);
+      console.log(`[Admin] Test sell requested: ${amount} tokens`);
       const result = await solanaService.sellToken(amount);
       
       res.json({
@@ -579,7 +595,7 @@ export async function registerRoutes(
         solAmount,
         goldAmount: swapResult.goldAmount,
         txSignature: swapResult.txSignature,
-        solscanUrl: swapResult.txSignature ? `https://solscan.io/tx/${swapResult.txSignature}` : null,
+        // solscanUrl: swapResult.txSignature ? `https://solscan.io/tx/${swapResult.txSignature}` : null,
         error: swapResult.error,
       });
     } catch (error: any) {

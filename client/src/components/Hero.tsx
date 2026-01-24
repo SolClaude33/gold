@@ -106,13 +106,13 @@ export function Hero() {
           />
         ))}
       </div>
-      {/* Pumpfun Pills - Right Side (Dense distribution) */}
+      {/* Four.meme Pills - Right Side (Dense distribution) */}
       <div className="absolute right-0 top-0 h-full w-2/5 pointer-events-none overflow-hidden">
         {pills.map((pill, i) => (
           <motion.img
             key={`pill-${i}`}
             src={pillImg}
-            alt="Pumpfun Pill"
+            alt="Four.meme Pill"
             className={`absolute ${pill.size} opacity-90`}
             style={{ top: pill.top, right: pill.right }}
             animate={{ y: [0, i % 2 === 0 ? -12 : 12, 0], rotate: [0, i % 2 === 0 ? 10 : -10, 0] }}
@@ -129,7 +129,7 @@ export function Hero() {
       >
         <motion.img
           src={pillImg}
-          alt="Giant Pumpfun Pill"
+          alt="Giant Four.meme Pill"
           className="w-[520px] md:w-[800px] lg:w-[1000px] opacity-25 dark:opacity-15"
           animate={{ y: [0, -20, 0], rotate: [0, 3, 0] }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
@@ -144,7 +144,7 @@ export function Hero() {
       >
         <div className="bg-black/90 backdrop-blur-sm border-2 border-metal-gold px-4 py-2 font-mono text-sm md:text-base shadow-[0_0_20px_rgba(255,215,0,0.3)]">
           <span className="text-metal-gold font-bold">CA:</span>
-          <span className="text-white ml-2 tracking-wider" data-testid="ca-address">CfcjJ7H4HM9f5zubbyG9XbbJvU4JpU9xKHBEjnGopump</span>
+          <span className="text-white ml-2 tracking-wider" data-testid="ca-address">SOON</span>
         </div>
       </motion.div>
       {/* Content */}

@@ -27,7 +27,7 @@ const TOKEN_ABI = [
   }
 ] as const;
 
-// Tax Processor ABI - functions to read accumulated totals
+// Tax Processor ABI - functions to read accumulated totals (from actual contract ABI)
 const TAX_PROCESSOR_ABI = [
   {
     "type": "function",
@@ -70,7 +70,7 @@ const TAX_PROCESSOR_ABI = [
   },
   {
     "type": "function",
-    "name": "totalQuoteSentToFundsRecipient",
+    "name": "totalQuoteSentToDividend",
     "inputs": [],
     "outputs": [
       {
@@ -97,6 +97,19 @@ const TAX_PROCESSOR_ABI = [
   {
     "type": "function",
     "name": "marketQuoteBalance",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "dividendQuoteBalance",
     "inputs": [],
     "outputs": [
       {
@@ -178,34 +191,23 @@ async function getContractData() {
           return 0n;
         }
       }),
-      // Try current treasury balance first, then try multiple functions for total
+      // Try current treasury balance first, then try totalQuoteSentToMarketing
       publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
         functionName: "marketQuoteBalance",
       }).catch(async (error: any) => {
-        console.log("[Contract] marketQuoteBalance not available, trying totals...");
-        // Try totalQuoteSentToFundsRecipient first
+        console.log("[Contract] marketQuoteBalance not available, trying totalQuoteSentToMarketing...");
+        // Fallback to totalQuoteSentToMarketing (this is the correct function for treasury/funds)
         try {
-          const fundsRecipient = await publicClient.readContract({
+          return await publicClient.readContract({
             address: taxProcessorAddress as `0x${string}`,
             abi: TAX_PROCESSOR_ABI,
-            functionName: "totalQuoteSentToFundsRecipient",
+            functionName: "totalQuoteSentToMarketing",
           });
-          return fundsRecipient;
-        } catch (e1: any) {
-          console.log("[Contract] totalQuoteSentToFundsRecipient not available, trying totalQuoteSentToMarketing...");
-          // Fallback to totalQuoteSentToMarketing
-          try {
-            return await publicClient.readContract({
-              address: taxProcessorAddress as `0x${string}`,
-              abi: TAX_PROCESSOR_ABI,
-              functionName: "totalQuoteSentToMarketing",
-            });
-          } catch (e2: any) {
-            console.error("[Contract] Error reading treasury/funds:", e2?.message || String(e2));
-            return 0n;
-          }
+        } catch (e: any) {
+          console.error("[Contract] Error reading treasury/funds:", e?.message || String(e));
+          return 0n;
         }
       }),
       // Always read totalQuoteAddedToLiquidity as backup
@@ -217,23 +219,14 @@ async function getContractData() {
         console.error("[Contract] Error reading totalQuoteAddedToLiquidity:", error?.message || String(error));
         return 0n;
       }),
-      // Try multiple functions for treasury total
+      // Read total treasury (totalQuoteSentToMarketing)
       publicClient.readContract({
         address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
-        functionName: "totalQuoteSentToFundsRecipient",
-      }).catch(async (error: any) => {
-        console.log("[Contract] totalQuoteSentToFundsRecipient not available, trying totalQuoteSentToMarketing...");
-        try {
-          return await publicClient.readContract({
-            address: taxProcessorAddress as `0x${string}`,
-            abi: TAX_PROCESSOR_ABI,
-            functionName: "totalQuoteSentToMarketing",
-          });
-        } catch (e: any) {
-          console.error("[Contract] Error reading treasury total:", e?.message || String(e));
-          return 0n;
-        }
+        functionName: "totalQuoteSentToMarketing",
+      }).catch((error: any) => {
+        console.error("[Contract] Error reading treasury total:", error?.message || String(error));
+        return 0n;
       })
     ]);
 

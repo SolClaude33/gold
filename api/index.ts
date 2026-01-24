@@ -3,6 +3,7 @@ import express from 'express';
 import { createServer } from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
 
 // Get current directory for path resolution
 const __filename = fileURLToPath(import.meta.url);
@@ -36,48 +37,68 @@ async function initializeApp() {
       // Dynamically import routes module
       // Vercel should include server/ files via vercel.json includeFiles
       if (!registerRoutes) {
-        // Try multiple import strategies
-        const importStrategies = [
-          // Strategy 1: Relative paths from api/
-          () => import('../server/routes'),
-          () => import('../server/routes.js'),
-          // Strategy 2: Absolute path from process.cwd()
-          () => {
-            const routesPath = path.resolve(process.cwd(), 'server', 'routes');
-            return import(routesPath);
-          },
-          // Strategy 3: Absolute path from __dirname
-          () => {
-            const routesPath = path.resolve(__dirname, '..', 'server', 'routes');
-            return import(routesPath);
-          },
-          // Strategy 4: Try from api/server (if files were copied there)
-          () => import('./server/routes'),
-          () => import('./server/routes.js'),
+        // Try multiple import strategies with file existence checks
+        const possiblePaths = [
+          path.resolve(__dirname, '..', 'server', 'routes.ts'),
+          path.resolve(__dirname, '..', 'server', 'routes.js'),
+          path.resolve(process.cwd(), 'server', 'routes.ts'),
+          path.resolve(process.cwd(), 'server', 'routes.js'),
+          path.resolve(__dirname, 'server', 'routes.ts'),
+          path.resolve(__dirname, 'server', 'routes.js'),
+        ];
+        
+        console.log('[Vercel] Checking for routes file...');
+        console.log('[Vercel] Debug paths:', {
+          cwd: process.cwd(),
+          __dirname,
+          possiblePaths: possiblePaths.map(p => ({ path: p, exists: existsSync(p) }))
+        });
+        
+        // First try relative imports (most reliable)
+        const relativeImports = [
+          '../server/routes',
+          '../server/routes.js',
+          './server/routes',
+          './server/routes.js',
         ];
         
         let lastError: any = null;
-        for (let i = 0; i < importStrategies.length; i++) {
+        for (const importPath of relativeImports) {
           try {
-            const routesModule = await importStrategies[i]();
+            const routesModule = await import(importPath);
             if (routesModule && routesModule.registerRoutes) {
               registerRoutes = routesModule.registerRoutes;
-              console.log(`[Vercel] Successfully loaded routes using strategy ${i + 1}`);
+              console.log(`[Vercel] Successfully loaded routes from: ${importPath}`);
               break;
             }
           } catch (e: any) {
             lastError = e;
-            console.log(`[Vercel] Strategy ${i + 1} failed:`, e?.message || String(e));
+            console.log(`[Vercel] Failed to import from ${importPath}:`, e?.message || String(e));
+          }
+        }
+        
+        // If relative imports failed, try absolute paths with file:// protocol
+        if (!registerRoutes) {
+          for (const filePath of possiblePaths) {
+            if (existsSync(filePath)) {
+              try {
+                const fileUrl = `file://${filePath}`;
+                const routesModule = await import(fileUrl);
+                if (routesModule && routesModule.registerRoutes) {
+                  registerRoutes = routesModule.registerRoutes;
+                  console.log(`[Vercel] Successfully loaded routes from absolute path: ${filePath}`);
+                  break;
+                }
+              } catch (e: any) {
+                lastError = e;
+                console.log(`[Vercel] Failed to import from ${filePath}:`, e?.message || String(e));
+              }
+            }
           }
         }
         
         if (!registerRoutes) {
-          console.error('[Vercel] All import strategies failed. Last error:', lastError);
-          console.error('[Vercel] Debug info:', {
-            cwd: process.cwd(),
-            __dirname,
-            __filename
-          });
+          console.error('[Vercel] All import attempts failed. Last error:', lastError);
           throw new Error(`Cannot load routes module. Last error: ${lastError?.message || String(lastError)}`);
         }
       }

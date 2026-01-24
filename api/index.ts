@@ -7,79 +7,188 @@ import { createPublicClient, http, formatEther, type PublicClient } from "viem";
 import { bsc } from "viem/chains";
 
 // ===== CONTRACT CONFIGURATION =====
-const TOKEN_ADDRESS = "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777";
-const TAX_PROCESSOR_ADDRESS = "0xF7e36953aEDF448cbB9cE5fA123742e3543A82D8";
+const TOKEN_ADDRESS = process.env.TOKEN_CONTRACT_ADDRESS || "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777";
+const TAX_PROCESSOR_ADDRESS = process.env.TAX_PROCESSOR_ADDRESS || null; // Will be read from token contract if not provided
 
+// Token Contract ABI - to read taxProcessor address
+const TOKEN_ABI = [
+  {
+    "type": "function",
+    "name": "taxProcessor",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  }
+] as const;
+
+// Tax Processor ABI - functions to read accumulated totals
 const TAX_PROCESSOR_ABI = [
   {
+    "type": "function",
+    "name": "totalQuoteAddedToLiquidity",
     "inputs": [],
-    "name": "funds",
-    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
+    "type": "function",
+    "name": "totalQuoteSentToMarketing",
     "inputs": [],
-    "name": "liquidity",
-    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "lpQuoteBalance",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "marketQuoteBalance",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   }
 ] as const;
 
 async function getContractData() {
   try {
+    const rpcUrl = process.env.EVM_RPC_URL || "https://bsc-dataseed1.binance.org";
     console.log("[Contract] Initializing viem client for BSC...");
+    console.log("[Contract] RPC URL:", rpcUrl);
+    console.log("[Contract] Token Address:", TOKEN_ADDRESS);
     
     const publicClient: PublicClient = createPublicClient({
       chain: bsc,
-      transport: http(process.env.EVM_RPC_URL || "https://bsc-dataseed1.binance.org"),
+      transport: http(rpcUrl),
     });
 
-    console.log("[Contract] Reading from TaxProcessor:", TAX_PROCESSOR_ADDRESS);
+    // Step 1: Get taxProcessor address from token contract (or use env var if provided)
+    let taxProcessorAddress = TAX_PROCESSOR_ADDRESS;
+    
+    if (!taxProcessorAddress) {
+      console.log("[Contract] Reading taxProcessor from token contract...");
+      try {
+        taxProcessorAddress = await publicClient.readContract({
+          address: TOKEN_ADDRESS as `0x${string}`,
+          abi: TOKEN_ABI,
+          functionName: "taxProcessor",
+        }) as string;
+        console.log("[Contract] TaxProcessor address from token:", taxProcessorAddress);
+      } catch (error: any) {
+        console.error("[Contract] Error reading taxProcessor from token:", error?.message || String(error));
+        throw new Error(`Failed to get taxProcessor address: ${error?.message || String(error)}`);
+      }
+    } else {
+      console.log("[Contract] Using TaxProcessor address from env var:", taxProcessorAddress);
+    }
 
-    const [funds, liquidity] = await Promise.all([
+    if (!taxProcessorAddress) {
+      throw new Error("TaxProcessor address not found");
+    }
+
+    // Step 2: Read from tax processor contract
+    console.log("[Contract] Reading from TaxProcessor:", taxProcessorAddress);
+
+    // Try to read current balances first (lpQuoteBalance, marketQuoteBalance)
+    // If those don't work, fallback to accumulated totals
+    const [liquidityBalance, treasuryBalance, totalLiquidity, totalTreasury] = await Promise.all([
       publicClient.readContract({
-        address: TAX_PROCESSOR_ADDRESS as `0x${string}`,
+        address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
-        functionName: "funds",
+        functionName: "lpQuoteBalance",
       }).catch((error: any) => {
-        console.log("[Contract] Error reading funds:", error?.message || String(error));
+        console.log("[Contract] lpQuoteBalance not available, trying totalQuoteAddedToLiquidity...");
+        return null;
+      }),
+      publicClient.readContract({
+        address: taxProcessorAddress as `0x${string}`,
+        abi: TAX_PROCESSOR_ABI,
+        functionName: "marketQuoteBalance",
+      }).catch((error: any) => {
+        console.log("[Contract] marketQuoteBalance not available, trying totalQuoteSentToMarketing...");
+        return null;
+      }),
+      publicClient.readContract({
+        address: taxProcessorAddress as `0x${string}`,
+        abi: TAX_PROCESSOR_ABI,
+        functionName: "totalQuoteAddedToLiquidity",
+      }).catch((error: any) => {
+        console.error("[Contract] Error reading totalQuoteAddedToLiquidity:", error?.message || String(error));
         return 0n;
       }),
       publicClient.readContract({
-        address: TAX_PROCESSOR_ADDRESS as `0x${string}`,
+        address: taxProcessorAddress as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
-        functionName: "liquidity",
+        functionName: "totalQuoteSentToMarketing",
       }).catch((error: any) => {
-        console.log("[Contract] Error reading liquidity:", error?.message || String(error));
+        console.error("[Contract] Error reading totalQuoteSentToMarketing:", error?.message || String(error));
         return 0n;
       })
     ]);
 
-    const fundsBalance = formatEther(funds);
-    const liquidityBalance = formatEther(liquidity);
+    // Use current balances if available, otherwise use accumulated totals
+    const liquidityValue = liquidityBalance !== null ? liquidityBalance : totalLiquidity;
+    const treasuryValue = treasuryBalance !== null ? treasuryBalance : totalTreasury;
+
+    console.log("[Contract] Raw values - liquidity:", liquidityValue.toString(), "treasury:", treasuryValue.toString());
+
+    const liquidityBNB = formatEther(liquidityValue);
+    const treasuryBNB = formatEther(treasuryValue);
 
     console.log("[Contract] Successfully read contract data:", {
-      fundsBalance,
-      liquidityBalance,
-      fundsRaw: funds.toString(),
-      liquidityRaw: liquidity.toString(),
+      liquidityBNB,
+      treasuryBNB,
+      liquidityRaw: liquidityValue.toString(),
+      treasuryRaw: treasuryValue.toString(),
     });
 
     return {
-      fundsBalance,
-      liquidityBalance,
+      fundsBalance: treasuryBNB, // Treasury = marketing funds
+      liquidityBalance: liquidityBNB, // Liquidity
       tokenAddress: TOKEN_ADDRESS,
-      taxProcessorAddress: TAX_PROCESSOR_ADDRESS,
+      taxProcessorAddress: taxProcessorAddress,
     };
   } catch (error: any) {
-    console.log("[Contract] Error reading contract data:", error?.message || String(error));
+    console.error("[Contract] Error reading contract data:", error?.message || String(error));
+    console.error("[Contract] Error stack:", error?.stack);
     return {
       fundsBalance: "0",
       liquidityBalance: "0",
       tokenAddress: TOKEN_ADDRESS,
-      taxProcessorAddress: TAX_PROCESSOR_ADDRESS,
+      taxProcessorAddress: TAX_PROCESSOR_ADDRESS || "unknown",
     };
   }
 }
@@ -132,8 +241,8 @@ const solanaService = {
   getWalletAddress: () => null,
   getSOLBalance: async () => 0,
   claimPumpfunFees: async () => ({ success: false, amount: 0, error: "Blockchain features disabled" }),
-  testBuyback: async () => ({ success: false, tokenAmount: 0, error: "Blockchain features disabled" }),
-  sellToken: async () => ({ success: false, solAmount: 0, error: "Blockchain features disabled" }),
+  testBuyback: async (_amount: number) => ({ success: false, tokenAmount: 0, txSignature: null, error: "Blockchain features disabled" }),
+  sellToken: async (_amount: number) => ({ success: false, solAmount: 0, txSignature: null, error: "Blockchain features disabled" }),
   getTokenBalance: async () => 0,
   swapSOLForGold: async () => ({ success: false, goldAmount: 0, error: "Blockchain features disabled" }),
 };

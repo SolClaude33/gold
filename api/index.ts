@@ -2,16 +2,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import express from 'express';
 import { createServer } from 'http';
 
-// Import routes - try static import first, fallback to dynamic
-let registerRoutes: any;
-try {
-  const routesModule = require('../server/routes');
-  registerRoutes = routesModule.registerRoutes;
-} catch {
-  // Will use dynamic import if static fails
-  registerRoutes = null;
-}
-
 // Create Express app
 const app = express();
 
@@ -29,6 +19,7 @@ app.use(express.urlencoded({ extended: false }));
 let httpServer: any;
 let routesInitialized = false;
 let initPromise: Promise<void> | null = null;
+let registerRoutes: any = null;
 
 async function initializeApp() {
   if (routesInitialized) return;
@@ -36,41 +27,35 @@ async function initializeApp() {
   
   initPromise = (async () => {
     try {
-      // Dynamically import routes module if static import failed
+      // Dynamically import routes module
       // Vercel should include server/ files via vercel.json includeFiles
       if (!registerRoutes) {
-        try {
-          // Try ES module import without extension
-          const routesModule = await import('../server/routes');
-          registerRoutes = routesModule.registerRoutes;
-          console.log('[Vercel] Successfully loaded routes module (ES import)');
-        } catch (e1: any) {
+        const importPaths = [
+          '../server/routes',
+          '../server/routes.js',
+          './server/routes',
+          './server/routes.js',
+        ];
+        
+        let lastError: any = null;
+        for (const importPath of importPaths) {
           try {
-            // Fallback to .js extension
-            const routesModule = await import('../server/routes.js');
-            registerRoutes = routesModule.registerRoutes;
-            console.log('[Vercel] Successfully loaded routes module (.js)');
-          } catch (e2: any) {
-            try {
-              // Fallback to require (CommonJS)
-              const routesModule = require('../server/routes');
+            const routesModule = await import(importPath);
+            if (routesModule && routesModule.registerRoutes) {
               registerRoutes = routesModule.registerRoutes;
-              console.log('[Vercel] Successfully loaded routes module (require)');
-            } catch (e3: any) {
-              console.error('[Vercel] Failed to import routes:', {
-                e1: e1?.message,
-                e2: e2?.message,
-                e3: e3?.message,
-                cwd: process.cwd()
-              });
-              throw new Error(`Cannot load routes module: ${e3?.message || String(e3)}`);
+              console.log(`[Vercel] Successfully loaded routes from: ${importPath}`);
+              break;
             }
+          } catch (e: any) {
+            lastError = e;
+            console.log(`[Vercel] Failed to import from ${importPath}:`, e?.message || String(e));
           }
         }
-      }
-      
-      if (!registerRoutes) {
-        throw new Error('registerRoutes is still not defined after all import attempts');
+        
+        if (!registerRoutes) {
+          console.error('[Vercel] All import attempts failed. Last error:', lastError);
+          throw new Error(`Cannot load routes module. Last error: ${lastError?.message || String(lastError)}`);
+        }
       }
       
       httpServer = createServer(app);

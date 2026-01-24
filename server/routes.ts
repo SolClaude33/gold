@@ -248,8 +248,8 @@ export async function registerRoutes(
       let contractData;
       try {
         contractData = await getContractData();
-      } catch (contractError) {
-        console.log("[Stats] Contract data not available, using defaults:", contractError);
+      } catch (contractError: any) {
+        console.log("[Stats] Contract data not available, using defaults:", contractError?.message || contractError);
         contractData = {
           fundsBalance: "0",
           liquidityBalance: "0",
@@ -258,13 +258,17 @@ export async function registerRoutes(
         };
       }
       
-      res.json({
+      // Convert wei to BNB (18 decimals)
+      const liquidityBNB = contractData?.liquidityBalance ? parseFloat(contractData.liquidityBalance) : 0;
+      const fundsBNB = contractData?.fundsBalance ? parseFloat(contractData.fundsBalance) : 0;
+      
+      res.status(200).json({
         totalDistributions: 0,
         totalGoldDistributed: 0,
         totalGoldMajorHolders: 0,
         totalGoldMediumHolders: 0,
-        totalTokenBuyback: contractData?.liquidityBalance || "0",
-        totalTreasury: contractData?.fundsBalance || "0",
+        totalTokenBuyback: liquidityBNB.toString(),
+        totalTreasury: fundsBNB.toString(),
         totalFeesClaimed: 0,
         totalBurned: 0,
         goldMint: "GoLDppdjB1vDTPSGxyMJFqdnj134yH6Prg9eqsGDiw6A",
@@ -278,13 +282,13 @@ export async function registerRoutes(
         treasuryPercentage: "10",
         goldDistributionPercentage: "75",
         burnPercentage: "0",
-        fundsBalance: contractData?.fundsBalance || "0",
-        liquidityBalance: contractData?.liquidityBalance || "0",
+        fundsBalance: fundsBNB.toString(),
+        liquidityBalance: liquidityBNB.toString(),
       });
-    } catch (error) {
-      console.error("Error fetching stats:", error);
+    } catch (error: any) {
+      console.error("[Stats] Error fetching stats:", error?.message || error);
       // Return default values instead of error
-      res.json({
+      res.status(200).json({
         totalDistributions: 0,
         totalGoldDistributed: 0,
         totalGoldMajorHolders: 0,

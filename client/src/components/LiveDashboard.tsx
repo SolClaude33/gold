@@ -181,7 +181,7 @@ export function LiveDashboard() {
             <div className="space-y-2">
               <h3 className="text-black dark:text-metal-gold text-xs uppercase tracking-widest mb-1 font-bold">Fees Converted to Gold</h3>
               <div className="text-4xl font-black text-black dark:text-metal-gold tracking-tighter tabular-nums" data-testid="text-fees-gold">
-                {(stats?.totalGoldDistributed || 0).toFixed(4)} <span className="text-lg text-black/50 dark:text-metal-gold/50 font-normal">OZ</span>
+                - <span className="text-lg text-black/50 dark:text-metal-gold/50 font-normal"></span>
               </div>
               <div className="w-full bg-white dark:bg-green-900/20 h-3 mt-2 border-2 border-black dark:border-none overflow-hidden rounded-full dark:rounded-none">
                 <div className="h-full bg-metal-gold" style={{ width: `${stats?.goldDistributionPercentage || 75}%` }}></div>
@@ -193,7 +193,7 @@ export function LiveDashboard() {
             <div className="space-y-2">
               <h3 className="text-black dark:text-blue-400 text-xs uppercase tracking-widest mb-1 font-bold">Liquidity ({stats?.buybackPercentage || "15"}%)</h3>
               <div className="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tighter tabular-nums" data-testid="text-buyback">
-                {stats?.liquidityBalance ? parseFloat(stats.liquidityBalance).toFixed(2) : (stats?.totalTokenBuyback || 0).toFixed(2)} <span className="text-lg text-blue-600/50 dark:text-blue-400/50 font-normal">GoldenBao</span>
+                {stats?.liquidityBalance ? parseFloat(stats.liquidityBalance).toFixed(4) : "0.0000"} <span className="text-lg text-blue-600/50 dark:text-blue-400/50 font-normal">BNB</span>
               </div>
               <div className="text-xs text-blue-700 dark:text-blue-400 font-bold bg-blue-100 dark:bg-transparent inline-block px-2 py-0.5 border border-blue-200 dark:border-none uppercase">
                 {stats?.majorHoldersPercentage || "75"}% Dividends | {stats?.buybackPercentage || "15"}% Liquidity | {stats?.treasuryPercentage || "10"}% Treasury
@@ -205,7 +205,7 @@ export function LiveDashboard() {
             <div className="space-y-2">
               <h3 className="text-black dark:text-purple-400 text-xs uppercase tracking-widest mb-1 font-bold">Treasury ({stats?.treasuryPercentage || "10"}%)</h3>
               <div className="text-3xl font-black text-purple-600 dark:text-purple-400 tracking-tighter tabular-nums" data-testid="text-treasury">
-                {stats?.fundsBalance ? parseFloat(stats.fundsBalance).toFixed(2) : (stats?.totalTreasury || 0).toFixed(2)} <span className="text-lg text-purple-600/50 dark:text-purple-400/50 font-normal">GoldenBao</span>
+                {stats?.fundsBalance ? parseFloat(stats.fundsBalance).toFixed(4) : "0.0000"} <span className="text-lg text-purple-600/50 dark:text-purple-400/50 font-normal">BNB</span>
               </div>
               <div className="text-xs text-purple-700 dark:text-purple-400 font-bold bg-purple-100 dark:bg-transparent inline-block px-2 py-0.5 border border-purple-200 dark:border-none uppercase">
                 Treasury Reserve

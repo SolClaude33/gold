@@ -208,7 +208,7 @@ export function LiveDashboard() {
       {/* Overlay oscuro */}
       <div className="absolute inset-0 bg-black/40" />
       
-      <div className="container mx-auto px-16 md:px-24 lg:px-19 py-4 relative z-10 w-full max-w-13xl">
+      <div className="container mx-auto px-16 md:px-24 lg:px-37 py-4 relative z-10 w-full max-w-13xl">
         
         <div className="bg-black/70 backdrop-blur-sm border-2 border-b-0 border-amber-400/60 rounded-t-xl p-4 flex justify-between items-center select-none shadow-[0_0_40px_rgba(251,191,36,0.3)]">
           <div className="flex items-center gap-4 text-xs">

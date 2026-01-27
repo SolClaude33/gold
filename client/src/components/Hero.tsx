@@ -1,17 +1,25 @@
 import { motion } from "framer-motion";
-import { Twitter, Globe } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Twitter, Globe, Send } from "lucide-react";
+import { useEffect } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useQuery } from "@tanstack/react-query";
 
 export function Hero() {
-  const [language, setLanguage] = useState<"en" | "zh">("en");
+  const { language, toggleLanguage } = useLanguage();
+
+  const { data: stats } = useQuery<{ tokenMint: string | null }>({
+    queryKey: ["hero-stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/public/stats");
+      if (!res.ok) throw new Error("Failed to fetch stats");
+      return res.json();
+    },
+    refetchInterval: 30000,
+  });
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
   }, []);
-
-  const toggleLanguage = () => {
-    setLanguage(prev => prev === "en" ? "zh" : "en");
-  };
 
   const content = {
     en: {
@@ -19,16 +27,18 @@ export function Hero() {
       subtitle: "GOLD VAULT",
       tagline: "THE ULTIMATE DIGITAL GOLD RESERVE",
       description: "Secure your wealth in the digital age. Gold-backed, vault-secured, blockchain-verified.",
-      cta1: "Enter Vault",
-      cta2: "Protocol Dashboard"
+      cta1: "ENTER VAULT",
+      cta2: "PROTOCOL DASHBOARD",
+      ca: "CA: SOON"
     },
     zh: {
       title: "金之金库",
-      subtitle: "金仓",
+      subtitle: "GOLD VAULT",
       tagline: "终极数字黄金储备",
-      description: "在数字时代保护您的财富。黄金支持，金库安全，区块链验证。",
+      description: "在数字时代守护你的财富：黄金背书、金库级安全、链上可验证。",
       cta1: "进入金库",
-      cta2: "协议仪表板"
+      cta2: "协议仪表板",
+      ca: "CA：即将公布"
     }
   };
 
@@ -116,6 +126,15 @@ export function Hero() {
           >
             <Twitter className="w-5 h-5 text-amber-300" />
           </a>
+          <a 
+            href="https://t.me/JinVault" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="p-2 border-2 border-amber-500 bg-black/90 backdrop-blur-sm hover:bg-amber-500/20 transition-colors rounded-full cursor-pointer"
+            data-testid="link-telegram-hero"
+          >
+            <Send className="w-5 h-5 text-amber-300" />
+          </a>
         </div>
       </div>
 
@@ -127,8 +146,10 @@ export function Hero() {
         className="absolute top-24 md:top-28 left-1/2 transform -translate-x-1/2 z-20"
       >
         <div className="bg-black/90 backdrop-blur-sm border-2 border-amber-500 px-6 py-3 font-mono text-sm md:text-base shadow-[0_0_30px_rgba(251,191,36,0.4)]">
-          <span className="text-amber-400 font-bold">CA:</span>
-          <span className="text-amber-100 ml-2 tracking-wider" data-testid="ca-address">SOON</span>
+          <span className="text-amber-400 font-bold">{language === "en" ? "CA:" : "CA："}</span>
+          <span className="text-amber-100 ml-2 tracking-wider" data-testid="ca-address">
+            {stats?.tokenMint ? stats.tokenMint : (language === "en" ? "SOON" : "即将公布")}
+          </span>
         </div>
       </motion.div>
 

@@ -21,30 +21,50 @@ export function Tokenomics() {
   const totalFees = stats?.totalFeesClaimed || 0;
 
   return (
-    <section className="py-24 px-4 bg-background text-foreground relative overflow-hidden border-y-4 border-border transition-colors duration-300">
+    <section className="py-24 px-4 text-white relative overflow-hidden border-y-4 border-amber-600/50">
+      {/* Goldback3 Background - Cascadas de oro */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ 
+          backgroundImage: 'url(/goldback3.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      />
+      
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black/75" />
+      
+      {/* Vault Texture Overlay */}
+      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_rgba(251,191,36,0.2)_0%,_transparent_70%)]" />
+      
       <div className="container mx-auto relative z-10">
-        <h2 className="text-4xl md:text-6xl font-black text-center mb-16 uppercase tracking-tight">
-          Protocol Mechanics
+        <h2 className="text-4xl md:text-6xl font-black text-center mb-4 uppercase tracking-tight">
+          <span className="bg-gradient-to-r from-amber-300 via-amber-500 to-amber-600 bg-clip-text text-transparent">
+            Protocol Mechanics
+          </span>
         </h2>
+        <p className="text-center text-amber-400/70 mb-16 text-lg">协议机制</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {/* Gold Dividends Card */}
           <motion.div 
             whileHover={{ y: -10 }}
-            className="bg-metal-gold border-4 border-border p-6 relative group shadow-[12px_12px_0px_0px_var(--color-border)] hover:shadow-[16px_16px_0px_0px_var(--color-border)] transition-all"
+            className="bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 border-4 border-amber-300 p-6 relative group shadow-[0_0_60px_rgba(251,191,36,0.6)] hover:shadow-[0_0_80px_rgba(251,191,36,0.8)] transition-all"
           >
             <div className="relative z-10 flex flex-col items-center text-center h-full">
-              <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mb-4 border-4 border-white">
-                <Coins className="w-10 h-10 text-metal-gold" />
+              <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mb-4 border-4 border-amber-300 shadow-lg">
+                <Coins className="w-10 h-10 text-amber-400" />
               </div>
-              <h3 className="text-2xl font-black text-black mb-2 uppercase">Gold Dividends</h3>
-              <div className="text-5xl font-black text-white mb-3 drop-shadow-[4px_4px_0px_rgba(0,0,0,1)]">75%</div>
-              <p className="text-black font-serif font-bold text-base leading-relaxed border-y-2 border-black py-3 mb-3">
+              <h3 className="text-2xl font-black text-black mb-1 uppercase">Gold Dividends</h3>
+              <p className="text-xs text-amber-900 mb-2">黄金分红</p>
+              <div className="text-5xl font-black text-white mb-3 drop-shadow-[4px_4px_0px_rgba(0,0,0,0.3)]">75%</div>
+              <p className="text-black font-bold text-base leading-relaxed border-y-2 border-black/30 py-3 mb-3">
                 Creator fees converted to tokenized gold and distributed to holders.
               </p>
               <div className="mt-auto pt-3 w-full">
-                 <div className="w-full bg-white h-3 mt-2 border-2 border-black overflow-hidden relative">
-                   <div className="h-full bg-black w-[75%]" />
+                 <div className="w-full bg-amber-900 h-3 mt-2 border-2 border-black/20 overflow-hidden relative">
+                   <div className="h-full bg-amber-200 w-[75%]" />
                  </div>
                  <p className="text-[10px] text-right mt-2 text-black font-mono font-bold uppercase">Holders with 0.5%+ supply</p>
               </div>
@@ -54,22 +74,23 @@ export function Tokenomics() {
           {/* Liquidity Card */}
           <motion.div 
             whileHover={{ y: -10 }}
-            className="bg-card border-4 border-border p-6 relative group shadow-[12px_12px_0px_0px_var(--color-border)] hover:shadow-[16px_16px_0px_0px_var(--color-border)] transition-all"
+            className="bg-gradient-to-br from-blue-600 to-blue-900 border-4 border-blue-300 p-6 relative group shadow-[0_0_60px_rgba(59,130,246,0.6)] hover:shadow-[0_0_80px_rgba(59,130,246,0.8)] transition-all"
           >
             <div className="relative z-10 flex flex-col items-center text-center h-full">
-              <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mb-4 border-4 border-border">
-                <TrendingUp className="w-10 h-10 text-white" />
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 border-4 border-blue-300 shadow-lg">
+                <TrendingUp className="w-10 h-10 text-blue-600" />
               </div>
-              <h3 className="text-2xl font-black text-foreground mb-2 uppercase">Liquidity</h3>
-              <div className="text-5xl font-black text-green-600 mb-3 drop-shadow-[2px_2px_0px_var(--color-border)]">15%</div>
-              <p className="text-foreground font-serif font-bold text-base leading-relaxed border-y-2 border-border py-3 mb-3">
+              <h3 className="text-2xl font-black text-white mb-1 uppercase">Liquidity</h3>
+              <p className="text-xs text-blue-200 mb-2">流动性</p>
+              <div className="text-5xl font-black text-white mb-3 drop-shadow-[4px_4px_0px_rgba(0,0,0,0.3)]">15%</div>
+              <p className="text-blue-100 font-bold text-base leading-relaxed border-y-2 border-white/30 py-3 mb-3">
                 Creator fees used to provide liquidity and support the token price.
               </p>
               <div className="mt-auto pt-3 w-full">
-                 <div className="w-full bg-muted h-3 mt-2 border-2 border-border overflow-hidden relative">
-                   <div className="h-full bg-green-600 w-[15%]" />
+                 <div className="w-full bg-blue-900 h-3 mt-2 border-2 border-white/20 overflow-hidden relative">
+                   <div className="h-full bg-blue-300 w-[15%]" />
                  </div>
-                 <p className="text-[10px] text-right mt-2 text-green-600 font-mono font-bold uppercase">Liquidity mechanism</p>
+                 <p className="text-[10px] text-right mt-2 text-blue-200 font-mono font-bold uppercase">Liquidity mechanism</p>
               </div>
             </div>
           </motion.div>
@@ -77,41 +98,45 @@ export function Tokenomics() {
           {/* Treasury Card */}
           <motion.div 
             whileHover={{ y: -10 }}
-            className="bg-zinc-800 border-4 border-border p-6 relative group shadow-[12px_12px_0px_0px_var(--color-border)] hover:shadow-[16px_16px_0px_0px_var(--color-border)] transition-all"
+            className="bg-gradient-to-br from-purple-700 to-purple-950 border-4 border-purple-300 p-6 relative group shadow-[0_0_60px_rgba(168,85,247,0.6)] hover:shadow-[0_0_80px_rgba(168,85,247,0.8)] transition-all"
           >
             <div className="relative z-10 flex flex-col items-center text-center h-full">
-              <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mb-4 border-4 border-zinc-600">
-                <Wallet className="w-10 h-10 text-white" />
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 border-4 border-purple-300 shadow-lg">
+                <Wallet className="w-10 h-10 text-purple-600" />
               </div>
-              <h3 className="text-2xl font-black text-white mb-2 uppercase">Treasury</h3>
-              <div className="text-5xl font-black text-white mb-3 drop-shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">10%</div>
-              <p className="text-zinc-300 font-serif font-bold text-base leading-relaxed border-y-2 border-zinc-600 py-3 mb-3">
+              <h3 className="text-2xl font-black text-white mb-1 uppercase">Treasury</h3>
+              <p className="text-xs text-purple-200 mb-2">金库</p>
+              <div className="text-5xl font-black text-white mb-3 drop-shadow-[4px_4px_0px_rgba(0,0,0,0.3)]">10%</div>
+              <p className="text-purple-100 font-bold text-base leading-relaxed border-y-2 border-white/30 py-3 mb-3">
                 Creator fees allocated to treasury for future development and operations.
               </p>
               <div className="mt-auto pt-3 w-full">
-                 <div className="w-full bg-zinc-700 h-3 mt-2 border-2 border-zinc-600 overflow-hidden relative">
-                   <div className="h-full bg-purple-600 w-[10%]" />
+                 <div className="w-full bg-purple-900 h-3 mt-2 border-2 border-white/20 overflow-hidden relative">
+                   <div className="h-full bg-purple-300 w-[10%]" />
                  </div>
-                 <p className="text-[10px] text-right mt-2 text-zinc-400 font-mono font-bold uppercase">Treasury reserve</p>
+                 <p className="text-[10px] text-right mt-2 text-purple-200 font-mono font-bold uppercase">Treasury reserve</p>
               </div>
             </div>
           </motion.div>
         </div>
         
-        <div className="mt-16 text-center border-t-4 border-border pt-8 max-w-2xl mx-auto">
-            <p className="text-xl font-mono text-foreground mb-4 font-bold bg-metal-gold text-black inline-block px-4 py-1 border-2 border-black">
+        <div className="mt-16 text-center border-t-4 border-amber-600/50 pt-8 max-w-2xl mx-auto">
+            <p className="text-xl font-mono mb-4 font-bold bg-gradient-to-r from-amber-500 to-amber-600 text-black inline-block px-6 py-2 border-4 border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.3)]">
               Total fees distributed: {totalFees.toFixed(4)}
             </p>
-            <p className="text-sm text-muted-foreground font-serif italic mb-6">
+            <p className="text-sm text-amber-400/70 italic mb-6">
                 {stats?.tokenMint 
                   ? "Distributions are automatic and hourly. No staking required. No claiming required."
                   : "Distributions will begin automatically when the token launches. No staking required."}
             </p>
+            <p className="text-xs text-amber-500/50 mb-6">
+                自动分配，无需质押，无需索取
+            </p>
             <a 
-              href="https://x.com/goldenbao" 
+              href="https://x.com/JinVault" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white font-bold uppercase tracking-wider hover:bg-zinc-800 transition-colors border-2 border-border"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-amber-600 to-amber-500 text-black font-bold uppercase tracking-wider hover:from-amber-500 hover:to-amber-600 transition-all border-4 border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.3)]"
               data-testid="link-twitter"
             >
               <Twitter className="w-5 h-5" />

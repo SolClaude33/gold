@@ -5,7 +5,7 @@ export function Ticker() {
 
   const items = {
     en: [
-      "▲ GOLD ATH $5,079",
+      "▲ GOLD ATH $5,586",
       "▲ DOLLAR IS DYING",
       "▲ WE ARE SO BACK",
       "▲ GOLD SUPERCYCLE CONFIRMED",
@@ -17,7 +17,7 @@ export function Ticker() {
       "▲ SUPPLY BURN IMMINENT"
     ],
     zh: [
-      "▲ GOLD ATH $5,079",
+      "▲ GOLD ATH $5,586",
       "▲ 美元正在走向终结",
       "▲ 我们强势回归",
       "▲ 黄金超级周期已确认",

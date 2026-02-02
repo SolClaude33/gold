@@ -8,18 +8,18 @@ import { bsc } from "viem/chains";
 const TOKEN_ADDRESS = "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777";
 const TAX_PROCESSOR_ADDRESS = "0xF7e36953aEDF448cbB9cE5fA123742e3543A82D8";
 
-// ABI for reading balances from tax processor
+// ABI updated for new token contract (dashboard reads quote buckets)
 const TAX_PROCESSOR_ABI = [
   {
     "inputs": [],
-    "name": "funds",
+    "name": "quoteFounder",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "liquidity",
+    "name": "quoteHolder",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
     "stateMutability": "view",
     "type": "function"
@@ -43,37 +43,40 @@ export async function getContractData(): Promise<ContractData> {
       transport: http(process.env.EVM_RPC_URL || "https://bsc-dataseed1.binance.org"),
     });
 
-    console.log("[Contract] Reading from TaxProcessor:", TAX_PROCESSOR_ADDRESS);
+    console.log("[Contract] Reading from Token contract:", TAX_PROCESSOR_ADDRESS);
 
-    // Read funds and liquidity from tax processor contract
-    const [funds, liquidity] = await Promise.all([
+    // Read quote buckets from token contract.
+    // Dashboard mapping:
+    // - fundsBalance (Treasury 10%)  -> quoteFounder()
+    // - liquidityBalance (15% card) -> quoteHolder()
+    const [quoteFounder, quoteHolder] = await Promise.all([
       publicClient.readContract({
         address: TAX_PROCESSOR_ADDRESS as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
-        functionName: "funds",
+        functionName: "quoteFounder",
       }).catch((error: any) => {
-        console.log("[Contract] Error reading funds:", error?.message || String(error));
+        console.log("[Contract] Error reading quoteFounder:", error?.message || String(error));
         return 0n;
       }),
       publicClient.readContract({
         address: TAX_PROCESSOR_ADDRESS as `0x${string}`,
         abi: TAX_PROCESSOR_ABI,
-        functionName: "liquidity",
+        functionName: "quoteHolder",
       }).catch((error: any) => {
-        console.log("[Contract] Error reading liquidity:", error?.message || String(error));
+        console.log("[Contract] Error reading quoteHolder:", error?.message || String(error));
         return 0n;
       })
     ]);
 
     // Convert from wei to BNB using formatEther (same as umamusume)
-    const fundsBalance = formatEther(funds);
-    const liquidityBalance = formatEther(liquidity);
+    const fundsBalance = formatEther(quoteFounder);
+    const liquidityBalance = formatEther(quoteHolder);
 
     console.log("[Contract] Successfully read contract data:", {
       fundsBalance,
       liquidityBalance,
-      fundsRaw: funds.toString(),
-      liquidityRaw: liquidity.toString(),
+      quoteFounderRaw: quoteFounder.toString(),
+      quoteHolderRaw: quoteHolder.toString(),
     });
 
     return {

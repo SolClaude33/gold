@@ -11,7 +11,7 @@ export function Manifesto() {
       docId: "DOC_ID: 6900-X",
       confidential: "CONFIDENTIAL",
       paragraph1: "The year is 2025. Gold is at $5,079. The dollar is dissolving into digital dust. The suits at Wall Street are panicking. They told you inflation was \"transitory\". They lied.",
-      paragraph2: "JinVault isn't just a memecoin. It's an index fund for the end of the world. It's a bet on the shiny rock that has outlasted every empire in history.",
+      paragraph2: "4Vault isn't just a memecoin. It's an index fund for the end of the world. It's a bet on the shiny rock that has outlasted every empire in history.",
       paragraph3: "While other coins offer you dreams of dogs in hats, we offer you the heavy, cold, hard reality of REAL GOLD. With 100x leverage on culture.",
       missionDirective: "MISSION DIRECTIVE",
       accumulate: "ACCUMULATE GOLD",
@@ -25,7 +25,7 @@ export function Manifesto() {
       docId: "DOC_ID: 6900-X",
       confidential: "机密",
       paragraph1: '2025 年。黄金来到 $5,079。美元正在化作数字尘埃。华尔街西装们开始恐慌。他们曾告诉你通胀只是"暂时的"。他们撒谎了。',
-      paragraph2: 'JinVault 不只是一个 memecoin。它是"世界终局"的指数基金——押注那块闪亮的石头：它见证并熬过了人类历史上每一个帝国。',
+      paragraph2: '4Vault 不只是一个 memecoin。它是"世界终局"的指数基金——押注那块闪亮的石头：它见证并熬过了人类历史上每一个帝国。',
       paragraph3: '当别的币卖给你"戴帽子的狗"的梦，我们给你的是沉重、冰冷、坚硬的 REAL GOLD（真实黄金）。再用 100 倍的文化杠杆，把它推向大众。',
       missionDirective: "使命指令",
       accumulate: "囤积黄金",
@@ -91,11 +91,11 @@ export function Manifesto() {
               <p>
                 {language === "en" ? (
                   <>
-                    <span className="bg-gradient-to-r from-amber-400 to-amber-600 text-black px-4 py-2 font-bold transform -rotate-1 inline-block border-4 border-amber-300 shadow-[0_0_30px_rgba(251,191,36,0.6)]">JinVault</span> {t.paragraph2}
+                    <span className="bg-gradient-to-r from-amber-400 to-amber-600 text-black px-4 py-2 font-bold transform -rotate-1 inline-block border-4 border-amber-300 shadow-[0_0_30px_rgba(251,191,36,0.6)]">4Vault</span> {t.paragraph2}
                   </>
                 ) : (
                   <>
-                    <span className="bg-gradient-to-r from-amber-400 to-amber-600 text-black px-4 py-2 font-bold transform -rotate-1 inline-block border-4 border-amber-300 shadow-[0_0_30px_rgba(251,191,36,0.6)]">JinVault</span> {t.paragraph2}
+                    <span className="bg-gradient-to-r from-amber-400 to-amber-600 text-black px-4 py-2 font-bold transform -rotate-1 inline-block border-4 border-amber-300 shadow-[0_0_30px_rgba(251,191,36,0.6)]">4Vault</span> {t.paragraph2}
                   </>
                 )}
               </p>

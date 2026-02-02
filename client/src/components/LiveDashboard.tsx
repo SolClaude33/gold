@@ -56,7 +56,7 @@ export function LiveDashboard() {
 
   const content = {
     en: {
-      monitor: "JINVAULT_MONITOR_V2.1",
+      monitor: "4VAULT_MONITOR_V2.1",
       monitorSub: "",
       followOnX: "Follow on X",
       totalProtocolTrades: "Total Protocol Trades",
@@ -73,7 +73,7 @@ export function LiveDashboard() {
       noDistributions: "No distributions yet. Logs will appear here when the token is live."
     },
     zh: {
-      monitor: "JINVAULT_MONITOR_V2.1",
+      monitor: "4VAULT_MONITOR_V2.1",
       monitorSub: "金库监控系统",
       followOnX: "关注 X",
       totalProtocolTrades: "协议总交易数",
@@ -370,7 +370,7 @@ export function LiveDashboard() {
                      </div>
                      <div className="flex items-center gap-4">
                        <span className="font-bold tabular-nums text-amber-200">
-                         {tx.type === "BUY GOLD" || tx.type === "DIVIDEND" ? `${tx.amount} OZ` : `${tx.amount} JinVault`}
+                        {tx.type === "BUY GOLD" || tx.type === "DIVIDEND" ? `${tx.amount} OZ` : `${tx.amount} 4Vault`}
                        </span>
                        <span className="text-xs text-amber-600/40 hidden md:block font-mono">{tx.hash}</span>
                        <span className="text-[10px] px-1.5 py-0.5 bg-amber-900/40 rounded border border-amber-500/50 text-amber-400 font-bold">LIVE</span>

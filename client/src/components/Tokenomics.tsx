@@ -167,7 +167,7 @@ export function Tokenomics() {
                   : t.distributionNoteAlt}
             </p>
             <a 
-              href="https://x.com/JinVault" 
+              href="https://x.com/4Vaultbnb" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-amber-600 to-amber-500 text-black font-bold uppercase tracking-wider hover:from-amber-500 hover:to-amber-600 transition-all border-4 border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.3)]"

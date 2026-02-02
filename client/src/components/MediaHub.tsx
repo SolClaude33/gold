@@ -14,7 +14,7 @@ export function MediaHub() {
       views: "850K Views"
     },
     {
-      title: "JINVAULT EXPLAINED",
+      title: "4VAULT EXPLAINED",
       duration: "1:15",
       views: "2.5M Views"
     }

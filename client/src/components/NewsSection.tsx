@@ -15,7 +15,7 @@ export function NewsSection() {
       edition: "EDITION: END GAME",
       breakingNews: "Breaking News",
       breakingNewsTitle: "THOUSANDS WAKING UP TO THE REALITY: FIAT IS WORTH ZERO",
-      breakingNewsDesc: "In a moment of awakening that could redefine global finance, millions are realizing that green paper is just paper. JinVault represents the paradigm shift back to hard assets.",
+      breakingNewsDesc: "In a moment of awakening that could redefine global finance, millions are realizing that green paper is just paper. 4Vault represents the paradigm shift back to hard assets.",
       fedPrinter: "Fed Printer Glitch",
       mustRead: "Must Read",
       mustRead1: "THE SECRET TO LIFE IS GOLD",
@@ -23,7 +23,7 @@ export function NewsSection() {
       mustRead3: "EXPLAINER: THE BURN",
       watchLive: "WATCH LIVE",
       nowPlaying: "NOW PLAYING:",
-      documentary: "\"WE ARE SO BACK\" - THE JINVAULT DOCUMENTARY",
+      documentary: "\"WE ARE SO BACK\" - THE 4VAULT DOCUMENTARY",
       goldTV: "GOLD TV",
       liveCoverage: "Live Coverage",
       onAir: "On Air",
@@ -37,7 +37,7 @@ export function NewsSection() {
       video3Status: "Alert",
       video3Title: "ALL TIME HIGHS",
       video3Source: "CNBC • 2.5M VIEWS",
-      quote: "\"We are literally giving you GOLD. Hold the token, get paid in real assets. Inflation is theft, JinVault is the vault.\""
+      quote: "\"We are literally giving you GOLD. Hold the token, get paid in real assets. Inflation is theft, 4Vault is the vault.\""
     },
     zh: {
       title: "黄金时报",
@@ -45,7 +45,7 @@ export function NewsSection() {
       edition: "特刊：终局",
       breakingNews: "突发新闻",
       breakingNewsTitle: "成千上万人正在醒悟：法币终将归零",
-      breakingNewsDesc: '一场可能重塑全球金融的集体觉醒正在发生——越来越多人发现，所谓"绿纸"终究只是纸。JinVault 代表的是回归硬资产的范式转移。',
+      breakingNewsDesc: '一场可能重塑全球金融的集体觉醒正在发生——越来越多人发现，所谓"绿纸"终究只是纸。4Vault 代表的是回归硬资产的范式转移。',
       fedPrinter: "美联储印钞机故障",
       mustRead: "必读",
       mustRead1: "人生的秘密：黄金",
@@ -53,7 +53,7 @@ export function NewsSection() {
       mustRead3: "科普：销毁机制",
       watchLive: "观看直播",
       nowPlaying: "正在播放：",
-      documentary: "《我们强势回归》— JinVault 纪录片",
+      documentary: "《我们强势回归》— 4Vault 纪录片",
       goldTV: "GOLD TV",
       liveCoverage: "实时报道",
       onAir: "直播中",
@@ -67,7 +67,7 @@ export function NewsSection() {
       video3Status: "警报",
       video3Title: "历史新高",
       video3Source: "CNBC • 250万次观看",
-      quote: '"我们是在把黄金直接送到你手上。拿住代币，就能拿到真实资产收益。通胀就是偷窃，JinVault 就是金库。"'
+      quote: '"我们是在把黄金直接送到你手上。拿住代币，就能拿到真实资产收益。通胀就是偷窃，4Vault 就是金库。"'
     }
   };
 

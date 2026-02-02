@@ -23,7 +23,7 @@ export function Hero() {
 
   const content = {
     en: {
-      title: "JinVault",
+      title: "4Vault",
       subtitle: "GOLD VAULT",
       tagline: "THE ULTIMATE DIGITAL GOLD RESERVE",
       description: "Secure your wealth in the digital age. Gold-backed, vault-secured, blockchain-verified.",
@@ -32,7 +32,7 @@ export function Hero() {
       ca: "CA: SOON"
     },
     zh: {
-      title: "金之金库",
+      title: "4Vault",
       subtitle: "GOLD VAULT",
       tagline: "终极数字黄金储备",
       description: "在数字时代守护你的财富：黄金背书、金库级安全、链上可验证。",
@@ -102,7 +102,7 @@ export function Hero() {
         <div className="relative z-50 transform -rotate-1 border-2 border-amber-500 bg-black/90 backdrop-blur-sm px-6 py-2 shadow-[0_0_30px_rgba(251,191,36,0.3)]">
            <h2 className="text-xl md:text-2xl font-black uppercase tracking-wider">
               <span className="bg-gradient-to-r from-amber-300 via-amber-500 to-amber-600 bg-clip-text text-transparent">
-                {language === "en" ? "JinVault" : "金之金库"}
+                {language === "en" ? "4Vault" : "4Vault"}
               </span>
            </h2>
         </div>
@@ -118,7 +118,7 @@ export function Hero() {
             </div>
           </button>
           <a 
-            href="https://x.com/JinVault" 
+            href="https://x.com/4Vaultbnb" 
             target="_blank" 
             rel="noopener noreferrer"
             className="p-2 border-2 border-amber-500 bg-black/90 backdrop-blur-sm hover:bg-amber-500/20 transition-colors rounded-full cursor-pointer"
@@ -127,7 +127,7 @@ export function Hero() {
             <Twitter className="w-5 h-5 text-amber-300" />
           </a>
           <a 
-            href="https://t.me/JinVault" 
+            href="https://t.me/4Vault" 
             target="_blank" 
             rel="noopener noreferrer"
             className="p-2 border-2 border-amber-500 bg-black/90 backdrop-blur-sm hover:bg-amber-500/20 transition-colors rounded-full cursor-pointer"

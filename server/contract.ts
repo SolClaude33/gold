@@ -28,6 +28,7 @@ const TAX_PROCESSOR_ABI = [
 
 interface ContractData {
   fundsBalance: string;
+  feesConvertedToGold: string;
   liquidityBalance: string;
   tokenAddress: string;
   taxProcessorAddress: string;
@@ -47,7 +48,10 @@ export async function getContractData(): Promise<ContractData> {
 
     // Read quote buckets from token contract.
     // Dashboard mapping:
-    // - fundsBalance (Treasury 10%)  -> quoteFounder()
+    // - quoteFounder() holds the combined quote bucket for founder/fees split
+    //   We split it into:
+    //   - fundsBalance (Treasury 10%)
+    //   - feesConvertedToGold (75%)
     // - liquidityBalance (15% card) -> quoteHolder()
     const [quoteFounder, quoteHolder] = await Promise.all([
       publicClient.readContract({
@@ -68,12 +72,20 @@ export async function getContractData(): Promise<ContractData> {
       })
     ]);
 
-    // Convert from wei to BNB using formatEther (same as umamusume)
-    const fundsBalance = formatEther(quoteFounder);
+    // Split quoteFounder into 75% (fees converted to gold) + 10% (treasury)
+    // NOTE: quoteFounder represents the combined (75 + 10) bucket, so we split by ratio.
+    // Treasury share = 10 / (75 + 10) = 10/85
+    const treasuryWei = (quoteFounder * 10n) / 85n;
+    const goldWei = quoteFounder - treasuryWei;
+
+    // Convert from wei to BNB using formatEther
+    const fundsBalance = formatEther(treasuryWei);
+    const feesConvertedToGold = formatEther(goldWei);
     const liquidityBalance = formatEther(quoteHolder);
 
     console.log("[Contract] Successfully read contract data:", {
       fundsBalance,
+      feesConvertedToGold,
       liquidityBalance,
       quoteFounderRaw: quoteFounder.toString(),
       quoteHolderRaw: quoteHolder.toString(),
@@ -81,6 +93,7 @@ export async function getContractData(): Promise<ContractData> {
 
     return {
       fundsBalance,
+      feesConvertedToGold,
       liquidityBalance,
       tokenAddress: TOKEN_ADDRESS,
       taxProcessorAddress: TAX_PROCESSOR_ADDRESS,
@@ -92,6 +105,7 @@ export async function getContractData(): Promise<ContractData> {
     // Return zeros if contract read fails
     return {
       fundsBalance: "0",
+      feesConvertedToGold: "0",
       liquidityBalance: "0",
       tokenAddress: TOKEN_ADDRESS,
       taxProcessorAddress: TAX_PROCESSOR_ADDRESS,

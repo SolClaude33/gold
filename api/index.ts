@@ -8,30 +8,12 @@ import { bsc } from "viem/chains";
 
 // ===== CONTRACT CONFIGURATION =====
 const TOKEN_ADDRESS = process.env.TOKEN_CONTRACT_ADDRESS;
-const TAX_PROCESSOR_ADDRESS = process.env.TAX_PROCESSOR_ADDRESS || null; // Will be read from token contract if not provided
 
-// Token Contract ABI - to read taxProcessor address
+// New token ABI (dashboard reads quote buckets directly)
 const TOKEN_ABI = [
   {
     "type": "function",
-    "name": "taxProcessor",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  }
-] as const;
-
-// Tax Processor ABI - functions to read accumulated totals (from actual contract ABI)
-const TAX_PROCESSOR_ABI = [
-  {
-    "type": "function",
-    "name": "totalQuoteAddedToLiquidity",
+    "name": "quoteFounder",
     "inputs": [],
     "outputs": [
       {
@@ -44,72 +26,7 @@ const TAX_PROCESSOR_ABI = [
   },
   {
     "type": "function",
-    "name": "totalTokenAddedToLiquidity",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "totalQuoteSentToMarketing",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "totalQuoteSentToDividend",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "lpQuoteBalance",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "marketQuoteBalance",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "dividendQuoteBalance",
+    "name": "quoteHolder",
     "inputs": [],
     "outputs": [
       {
@@ -139,142 +56,39 @@ async function getContractData() {
       transport: http(rpcUrl),
     });
 
-    // Step 1: Get taxProcessor address from token contract (or use env var if provided)
-    let taxProcessorAddress = TAX_PROCESSOR_ADDRESS;
-    
-    if (!taxProcessorAddress) {
-      console.log("[Contract] Reading taxProcessor from token contract...");
-      try {
-        taxProcessorAddress = await publicClient.readContract({
-          address: TOKEN_ADDRESS as `0x${string}`,
-          abi: TOKEN_ABI,
-          functionName: "taxProcessor",
-        }) as string;
-        console.log("[Contract] TaxProcessor address from token:", taxProcessorAddress);
-      } catch (error: any) {
-        console.error("[Contract] Error reading taxProcessor from token:", error?.message || String(error));
-        throw new Error(`Failed to get taxProcessor address: ${error?.message || String(error)}`);
-      }
-    } else {
-      console.log("[Contract] Using TaxProcessor address from env var:", taxProcessorAddress);
-    }
+    console.log("[Contract] Reading quote buckets from token:", TOKEN_ADDRESS);
 
-    if (!taxProcessorAddress) {
-      throw new Error("TaxProcessor address not found");
-    }
-
-    // Step 2: Read from tax processor contract
-    console.log("[Contract] Reading from TaxProcessor:", taxProcessorAddress);
-
-    // Read liquidity (BNB) and treasury/funds - use total accumulated values
-    const [
-      totalLiquidityBNB,
-      treasuryBNB,
-      totalTreasuryBNB
-    ] = await Promise.all([
-      // Read totalQuoteAddedToLiquidity (total accumulated) - this is what we want to display
+    const [quoteFounder, quoteHolder] = await Promise.all([
       publicClient.readContract({
-        address: taxProcessorAddress as `0x${string}`,
-        abi: TAX_PROCESSOR_ABI,
-        functionName: "totalQuoteAddedToLiquidity",
+        address: TOKEN_ADDRESS as `0x${string}`,
+        abi: TOKEN_ABI,
+        functionName: "quoteFounder",
       }).catch((error: any) => {
-        console.error("[Contract] Error reading totalQuoteAddedToLiquidity:", error?.message || String(error));
+        console.error("[Contract] Error reading quoteFounder:", error?.message || String(error));
         return 0n;
       }),
-      // Try current treasury balance first, then try totalQuoteSentToMarketing
       publicClient.readContract({
-        address: taxProcessorAddress as `0x${string}`,
-        abi: TAX_PROCESSOR_ABI,
-        functionName: "marketQuoteBalance",
-      }).catch(async (error: any) => {
-        console.log("[Contract] marketQuoteBalance not available, trying totalQuoteSentToMarketing...");
-        // Fallback to totalQuoteSentToMarketing (this is the correct function for treasury/funds)
-        try {
-          return await publicClient.readContract({
-            address: taxProcessorAddress as `0x${string}`,
-            abi: TAX_PROCESSOR_ABI,
-            functionName: "totalQuoteSentToMarketing",
-          });
-        } catch (e: any) {
-          console.error("[Contract] Error reading treasury/funds:", e?.message || String(e));
-          return 0n;
-        }
-      }),
-      // Read total treasury (totalQuoteSentToMarketing)
-      publicClient.readContract({
-        address: taxProcessorAddress as `0x${string}`,
-        abi: TAX_PROCESSOR_ABI,
-        functionName: "totalQuoteSentToMarketing",
+        address: TOKEN_ADDRESS as `0x${string}`,
+        abi: TOKEN_ABI,
+        functionName: "quoteHolder",
       }).catch((error: any) => {
-        console.error("[Contract] Error reading treasury total:", error?.message || String(error));
+        console.error("[Contract] Error reading quoteHolder:", error?.message || String(error));
         return 0n;
-      })
+      }),
     ]);
 
-    // Use total accumulated values (not current balances)
-    const liquidityBNBValue = totalLiquidityBNB;
-    // Use marketQuoteBalance (current balance) for splitting
-    const marketBalanceValue = treasuryBNB !== null && treasuryBNB > 0n ? treasuryBNB : totalTreasuryBNB;
-    
-    // Split marketQuoteBalance: 11.76% → Treasury, 88.24% → Fees Converted to Gold
-    const treasuryPercentage = 11.76; // 11.76%
-    const feesPercentage = 88.24; // 88.24%
-    
-    // Calculate split values
-    const treasuryBNBValue = (marketBalanceValue * BigInt(Math.floor(treasuryPercentage * 100))) / 10000n;
-    const feesConvertedToGoldValue = (marketBalanceValue * BigInt(Math.floor(feesPercentage * 100))) / 10000n;
-    
-    // Try to read tokens (optional - if function doesn't exist, just skip it)
-    let liquidityTokensValue = 0n;
-    try {
-      liquidityTokensValue = await publicClient.readContract({
-        address: taxProcessorAddress as `0x${string}`,
-        abi: TAX_PROCESSOR_ABI,
-        functionName: "totalTokenAddedToLiquidity",
-      });
-      console.log("[Contract] Successfully read liquidity tokens:", liquidityTokensValue.toString());
-    } catch (error: any) {
-      console.log("[Contract] totalTokenAddedToLiquidity not available (this is OK):", error?.message || String(error));
-      // Tokens are optional, so we just continue without them
-    }
-
-    console.log("[Contract] Raw values:");
-    console.log("  - Liquidity BNB:", liquidityBNBValue.toString());
-    console.log("  - Liquidity Tokens:", liquidityTokensValue.toString());
-    console.log("  - Market Balance (total):", marketBalanceValue.toString());
-    console.log("  - Treasury (11.76%):", treasuryBNBValue.toString());
-    console.log("  - Fees Converted to Gold (88.24%):", feesConvertedToGoldValue.toString());
-
-    const liquidityBNBFormatted = formatEther(liquidityBNBValue);
-    const treasuryBNBFormatted = formatEther(treasuryBNBValue);
-    const feesConvertedToGoldFormatted = formatEther(feesConvertedToGoldValue);
-    // Tokens are already in token units (not wei), so format accordingly
-    // Assuming 18 decimals for tokens (adjust if different)
-    const liquidityTokensFormatted = liquidityTokensValue > 0n ? formatEther(liquidityTokensValue) : "0";
-
-    console.log("[Contract] Successfully read contract data:", {
-      liquidityBNB: liquidityBNBFormatted,
-      liquidityTokens: liquidityTokensFormatted,
-      treasuryBNB: treasuryBNBFormatted,
-      feesConvertedToGold: feesConvertedToGoldFormatted,
-      liquidityBNBRaw: liquidityBNBValue.toString(),
-      liquidityTokensRaw: liquidityTokensValue.toString(),
-      treasuryBNBRaw: treasuryBNBValue.toString(),
-      feesConvertedToGoldRaw: feesConvertedToGoldValue.toString(),
-    });
+    // Split quoteFounder into 75% (fees converted to gold) + 10% (treasury)
+    // quoteFounder represents the combined (75 + 10) bucket, so split by ratio.
+    const treasuryWei = (quoteFounder * 10n) / 85n;
+    const goldWei = quoteFounder - treasuryWei;
 
     const result: any = {
-      fundsBalance: treasuryBNBFormatted, // Treasury = 11.76% of marketQuoteBalance
-      feesConvertedToGold: feesConvertedToGoldFormatted, // Fees Converted to Gold = 88.24% of marketQuoteBalance
-      liquidityBalance: liquidityBNBFormatted, // Liquidity BNB
+      fundsBalance: formatEther(treasuryWei),
+      feesConvertedToGold: formatEther(goldWei),
+      liquidityBalance: formatEther(quoteHolder),
       tokenAddress: TOKEN_ADDRESS,
-      taxProcessorAddress: taxProcessorAddress,
+      taxProcessorAddress: TOKEN_ADDRESS,
     };
-
-    // Only include liquidityTokens if we successfully read them
-    if (liquidityTokensValue > 0n) {
-      result.liquidityTokens = liquidityTokensFormatted;
-    }
 
     return result;
   } catch (error: any) {
@@ -282,9 +96,10 @@ async function getContractData() {
     console.error("[Contract] Error stack:", error?.stack);
     return {
       fundsBalance: "0",
+      feesConvertedToGold: "0",
       liquidityBalance: "0",
       tokenAddress: TOKEN_ADDRESS || "not configured",
-      taxProcessorAddress: TAX_PROCESSOR_ADDRESS || "unknown",
+      taxProcessorAddress: TOKEN_ADDRESS || "unknown",
     };
   }
 }

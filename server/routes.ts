@@ -247,6 +247,7 @@ export async function registerRoutes(
       // Safely import and call contract data
       let contractData: any = {
         fundsBalance: "0",
+        feesConvertedToGold: "0",
         liquidityBalance: "0",
         tokenAddress: "0xdCCf9Ac19362C6d60e69A196fC6351C4A0887777",
         taxProcessorAddress: "0xF7e36953aEDF448cbB9cE5fA123742e3543A82D8",
@@ -269,10 +270,12 @@ export async function registerRoutes(
       // Convert wei to BNB (18 decimals) - safely parse
       let liquidityBNB = 0;
       let fundsBNB = 0;
+      let feesConvertedBNB = 0;
       
       try {
         liquidityBNB = contractData?.liquidityBalance ? parseFloat(String(contractData.liquidityBalance)) || 0 : 0;
         fundsBNB = contractData?.fundsBalance ? parseFloat(String(contractData.fundsBalance)) || 0 : 0;
+        feesConvertedBNB = contractData?.feesConvertedToGold ? parseFloat(String(contractData.feesConvertedToGold)) || 0 : 0;
       } catch (parseError) {
         console.log("[Stats] Error parsing contract values:", parseError);
       }
@@ -298,6 +301,7 @@ export async function registerRoutes(
         goldDistributionPercentage: "75",
         burnPercentage: "0",
         fundsBalance: fundsBNB.toString(),
+        feesConvertedToGold: feesConvertedBNB.toString(),
         liquidityBalance: liquidityBNB.toString(),
       };
 
@@ -327,6 +331,7 @@ export async function registerRoutes(
         goldDistributionPercentage: "75",
         burnPercentage: "0",
         fundsBalance: "0",
+        feesConvertedToGold: "0",
         liquidityBalance: "0",
       });
     }
